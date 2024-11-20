@@ -22,12 +22,14 @@ func main() {
 		os.Exit(1)
 	}
 	defer l.Close()
-	conn, err := l.Accept()
-	if err != nil {
-		fmt.Println("Error accepting connection: ", err.Error())
-		os.Exit(1)
+	for {
+		conn, err := l.Accept()
+		if err != nil {
+			fmt.Println("Error accepting connection: ", err.Error())
+			os.Exit(1)
+		}
+		go handleConnection(conn)
 	}
-	handleConnection(conn)
 }
 
 type Response struct {
@@ -47,6 +49,6 @@ func serializeResponse(r *Response) []byte {
 }
 
 func handleConnection(c net.Conn) {
+	defer c.Close()
 	c.Write(serializeResponse(GetResponse()))
-	c.Close()
 }
