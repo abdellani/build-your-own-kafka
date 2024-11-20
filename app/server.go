@@ -1,6 +1,8 @@
 package main
 
 import (
+	"bytes"
+	"encoding/binary"
 	"fmt"
 	"net"
 	"os"
@@ -19,9 +21,32 @@ func main() {
 		fmt.Println("Failed to bind to port 9092")
 		os.Exit(1)
 	}
-	_, err = l.Accept()
+	defer l.Close()
+	conn, err := l.Accept()
 	if err != nil {
 		fmt.Println("Error accepting connection: ", err.Error())
 		os.Exit(1)
 	}
+	handleConnection(conn)
+}
+
+type Response struct {
+	Size          int32
+	CorrelationId int32
+}
+
+func GetResponse() *Response {
+	return &Response{Size: 0, CorrelationId: 7}
+}
+
+func serializeResponse(r *Response) []byte {
+	buff := bytes.Buffer{}
+	binary.Write(&buff, binary.BigEndian, r.Size)
+	binary.Write(&buff, binary.BigEndian, r.CorrelationId)
+	return buff.Bytes()
+}
+
+func handleConnection(c net.Conn) {
+	c.Write(serializeResponse(GetResponse()))
+	c.Close()
 }
