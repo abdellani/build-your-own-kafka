@@ -39,10 +39,28 @@ type Request struct {
 	CorrelationId     int32
 }
 
-type Response struct {
-	Size          int32
-	CorrelationId int32
+func (r *Request) IsSupportedVersion() bool {
+	return 0 <= r.RequestApiVersion && r.RequestApiVersion <= 4
 }
+
+type Response struct {
+	Size           int32
+	CorrelationId  int32
+	Error          int16
+	NumApiKeys     int8
+	ApiKeys        ApiKeys
+	ThrottleTimeMs int32
+	TAG_BUFFER
+}
+
+type ApiKeys struct {
+	ApiKey     int16
+	MinVersion int16
+	MaxVersion int16
+	TAG_BUFFER
+}
+
+type TAG_BUFFER int8
 
 func DeserializeRequest(b bytes.Buffer) *Request {
 	r := Request{}
@@ -51,8 +69,21 @@ func DeserializeRequest(b bytes.Buffer) *Request {
 	return &r
 }
 
-func NewResponse(correlationId int32) *Response {
-	return &Response{Size: 0, CorrelationId: correlationId}
+func NewResponse(correlationId int32, err int16) *Response {
+	response := Response{
+		Size:          0,
+		CorrelationId: correlationId,
+		Error:         err,
+		NumApiKeys:    2,
+		ApiKeys: ApiKeys{
+			ApiKey:     18,
+			MinVersion: 0,
+			MaxVersion: 4,
+		},
+		ThrottleTimeMs: 0,
+	}
+	response.Size = int32(binary.Size(&response)) - 4
+	return &response
 }
 
 func serializeResponse(r *Response) []byte {
@@ -68,6 +99,11 @@ func handleConnection(c net.Conn) {
 	c.Read(buff)
 	received.Write(buff)
 	request := DeserializeRequest(received)
-	response := NewResponse(request.CorrelationId)
+	if !request.IsSupportedVersion() {
+		response := NewResponse(request.CorrelationId, 35)
+		c.Write(serializeResponse(response))
+
+	}
+	response := NewResponse(request.CorrelationId, 0)
 	c.Write(serializeResponse(response))
 }
