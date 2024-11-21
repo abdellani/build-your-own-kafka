@@ -32,23 +32,42 @@ func main() {
 	}
 }
 
+type Request struct {
+	MessageSize       int32
+	RequestApiKey     int16
+	RequestApiVersion int16
+	CorrelationId     int32
+}
+
 type Response struct {
 	Size          int32
 	CorrelationId int32
 }
 
-func GetResponse() *Response {
-	return &Response{Size: 0, CorrelationId: 7}
+func DeserializeRequest(b bytes.Buffer) *Request {
+	r := Request{}
+	reader := bytes.NewReader(b.Bytes())
+	binary.Read(reader, binary.BigEndian, &r)
+	return &r
+}
+
+func NewResponse(correlationId int32) *Response {
+	return &Response{Size: 0, CorrelationId: correlationId}
 }
 
 func serializeResponse(r *Response) []byte {
 	buff := bytes.Buffer{}
-	binary.Write(&buff, binary.BigEndian, r.Size)
-	binary.Write(&buff, binary.BigEndian, r.CorrelationId)
+	binary.Write(&buff, binary.BigEndian, r)
 	return buff.Bytes()
 }
 
 func handleConnection(c net.Conn) {
 	defer c.Close()
-	c.Write(serializeResponse(GetResponse()))
+	received := bytes.Buffer{}
+	buff := make([]byte, 1024)
+	c.Read(buff)
+	received.Write(buff)
+	request := DeserializeRequest(received)
+	response := NewResponse(request.CorrelationId)
+	c.Write(serializeResponse(response))
 }
