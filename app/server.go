@@ -40,7 +40,18 @@ type Request struct {
 }
 
 func (r *Request) IsSupportedVersion() bool {
-	return 0 <= r.RequestApiVersion && r.RequestApiVersion <= 4
+	supportedVersions := map[int]struct {
+		MinVersion int16
+		MaxVersion int16
+	}{
+		18: {
+			MinVersion: 0,
+			MaxVersion: 4,
+		},
+	}
+	supportedVersion := supportedVersions[int(r.RequestApiKey)]
+	return supportedVersion.MinVersion <= r.RequestApiVersion &&
+		r.RequestApiVersion <= supportedVersion.MaxVersion
 }
 
 type Response struct {
