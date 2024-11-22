@@ -33,10 +33,10 @@ func main() {
 }
 
 type Request struct {
-	Size              int32
-	RequestApiKey     int16
-	RequestApiVersion int16
-	CorrelationId     int32
+	Size          int32
+	ApiKey        int16
+	ApiVersion    int16
+	CorrelationId int32
 }
 
 func (r *Request) IsSupportedVersion() bool {
@@ -49,9 +49,9 @@ func (r *Request) IsSupportedVersion() bool {
 			MaxVersion: 4,
 		},
 	}
-	supportedVersion := supportedVersions[int(r.RequestApiKey)]
-	return supportedVersion.MinVersion <= r.RequestApiVersion &&
-		r.RequestApiVersion <= supportedVersion.MaxVersion
+	supportedVersion := supportedVersions[int(r.ApiKey)]
+	return supportedVersion.MinVersion <= r.ApiVersion &&
+		r.ApiVersion <= supportedVersion.MaxVersion
 }
 
 type ApiVersionResponse struct {
@@ -80,7 +80,7 @@ func DeserializeRequest(b bytes.Buffer) *Request {
 	return &r
 }
 
-func NewResponse(correlationId int32, err int16) *ApiVersionResponse {
+func NewApiVersionResponse(correlationId int32, err int16) *ApiVersionResponse {
 	response := ApiVersionResponse{
 		Size:          0,
 		CorrelationId: correlationId,
@@ -135,11 +135,35 @@ func handleConnection(c net.Conn) {
 	c.Read(buff)
 	received.Write(buff)
 	request := DeserializeRequest(received)
-	if !request.IsSupportedVersion() {
-		response := NewResponse(request.CorrelationId, 35)
-		c.Write(response.Serialize())
-
-	}
-	response := NewResponse(request.CorrelationId, 0)
+	response := HandleRequest(request)
 	c.Write(response.Serialize())
+}
+
+type Response interface {
+	Serialize() []byte
+}
+
+const (
+	ApiVersionApiKey = 18
+)
+
+var Handlers = map[int16]func(req *Request) Response{
+	ApiVersionApiKey: ApiVersionHandler,
+}
+
+func ApiVersionHandler(req *Request) Response {
+	if !req.IsSupportedVersion() {
+		return NewApiVersionResponse(req.CorrelationId, 35)
+	}
+	return NewApiVersionResponse(req.CorrelationId, 0)
+}
+
+func HandleRequest(req *Request) Response {
+	var handler func(req *Request) Response
+	switch req.ApiKey {
+	case ApiVersionApiKey:
+		handler = Handlers[req.ApiKey]
+	}
+	response := handler(req)
+	return response
 }
