@@ -33,7 +33,7 @@ func main() {
 }
 
 type Request struct {
-	MessageSize       int32
+	Size              int32
 	RequestApiKey     int16
 	RequestApiVersion int16
 	CorrelationId     int32
@@ -54,12 +54,12 @@ func (r *Request) IsSupportedVersion() bool {
 		r.RequestApiVersion <= supportedVersion.MaxVersion
 }
 
-type Response struct {
+type ApiVersionResponse struct {
 	Size           int32
 	CorrelationId  int32
 	Error          int16
 	NumApiKeys     int8
-	ApiKeys        ApiKeys
+	ApiKeys        []ApiKeys
 	ThrottleTimeMs int32
 	TAG_BUFFER
 }
@@ -80,26 +80,51 @@ func DeserializeRequest(b bytes.Buffer) *Request {
 	return &r
 }
 
-func NewResponse(correlationId int32, err int16) *Response {
-	response := Response{
+func NewResponse(correlationId int32, err int16) *ApiVersionResponse {
+	response := ApiVersionResponse{
 		Size:          0,
 		CorrelationId: correlationId,
 		Error:         err,
 		NumApiKeys:    2,
-		ApiKeys: ApiKeys{
-			ApiKey:     18,
-			MinVersion: 0,
-			MaxVersion: 4,
+		ApiKeys: []ApiKeys{
+			{ApiKey: 18,
+				MinVersion: 0,
+				MaxVersion: 4},
 		},
 		ThrottleTimeMs: 0,
 	}
-	response.Size = int32(binary.Size(&response)) - 4
+	response.Size = response.CalculateSize()
 	return &response
 }
 
-func serializeResponse(r *Response) []byte {
+func (r *ApiVersionResponse) CalculateSize() int32 {
+	const (
+		CorrelationId  = 4
+		Error          = 2
+		NumApiKeys     = 1 //TODO: this is a VARINT not constant size int
+		ApiKeys        = 7
+		ThrottleTimeMs = 4
+		TAG_BUFFER     = 1
+	)
+
+	return int32(CorrelationId + Error +
+		NumApiKeys + len(r.ApiKeys)*ApiKeys +
+		ThrottleTimeMs +
+		TAG_BUFFER)
+}
+
+func (r *ApiVersionResponse) Serialize() []byte {
 	buff := bytes.Buffer{}
-	binary.Write(&buff, binary.BigEndian, r)
+	binary.Write(&buff, binary.BigEndian, r.Size)
+	binary.Write(&buff, binary.BigEndian, r.CorrelationId)
+	binary.Write(&buff, binary.BigEndian, r.Error)
+	binary.Write(&buff, binary.BigEndian, r.NumApiKeys)
+	for i := 0; i < len(r.ApiKeys); i++ {
+		ApiKeys := r.ApiKeys[i]
+		binary.Write(&buff, binary.BigEndian, ApiKeys)
+	}
+	binary.Write(&buff, binary.BigEndian, r.ThrottleTimeMs)
+	binary.Write(&buff, binary.BigEndian, r.TAG_BUFFER)
 	return buff.Bytes()
 }
 
@@ -112,9 +137,9 @@ func handleConnection(c net.Conn) {
 	request := DeserializeRequest(received)
 	if !request.IsSupportedVersion() {
 		response := NewResponse(request.CorrelationId, 35)
-		c.Write(serializeResponse(response))
+		c.Write(response.Serialize())
 
 	}
 	response := NewResponse(request.CorrelationId, 0)
-	c.Write(serializeResponse(response))
+	c.Write(response.Serialize())
 }
