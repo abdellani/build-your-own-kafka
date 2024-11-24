@@ -6,7 +6,7 @@ import (
 )
 
 type ApiVersionResponse struct {
-	Size           int32
+	CommonResponseFields
 	CorrelationId  int32
 	Error          int16
 	NumApiKeys     int8
@@ -26,16 +26,10 @@ type ApiVersionHandler struct {
 	SupportedVersions
 }
 
-func (h *ApiVersionHandler) Init() {
-	h.SupportedVersions.MinVersion = 0
-	h.SupportedVersions.MaxVersion = 4
-
-}
-
 type TAG_BUFFER int8
 
 func (h *ApiVersionHandler) Handle(req *Request) Response {
-	if !req.IsSupportedVersion(h.SupportedVersions.MinVersion, h.SupportedVersions.MaxVersion) {
+	if !req.IsSupportedVersion(int16(h.MinVersion), h.MaxVersion) {
 		return NewApiVersionResponse(req.CorrelationId, 35)
 	}
 	return NewApiVersionResponse(req.CorrelationId, 0)
@@ -43,14 +37,16 @@ func (h *ApiVersionHandler) Handle(req *Request) Response {
 
 func NewApiVersionResponse(correlationId int32, err int16) *ApiVersionResponse {
 	response := ApiVersionResponse{
-		Size:          0,
 		CorrelationId: correlationId,
 		Error:         err,
-		NumApiKeys:    2,
+		NumApiKeys:    3,
 		ApiKeys: []ApiKeys{
-			{ApiKey: 18,
+			{ApiKey: ApiVersionsApiKey,
 				MinVersion: 0,
 				MaxVersion: 4},
+			{ApiKey: DescribeTopicPartitionsApiKey,
+				MinVersion: 0,
+				MaxVersion: 0},
 		},
 		ThrottleTimeMs: 0,
 	}

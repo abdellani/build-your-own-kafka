@@ -13,16 +13,6 @@ type Request struct {
 }
 
 func (r *Request) IsSupportedVersion(min, max int16) bool {
-	// 	supportedVersions := map[int]struct {
-	// 		MinVersion int16
-	// 		MaxVersion int16
-	// 	}{
-	// 		18: {
-	// 			MinVersion: 0,
-	// 			MaxVersion: 4,
-	// 		},
-	// 	}
-	// //	supportedVersion := supportedVersions[int(r.ApiKey)]
 	return min <= r.ApiVersion &&
 		r.ApiVersion <= max
 }

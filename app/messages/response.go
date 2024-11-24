@@ -5,6 +5,18 @@ const (
 	DescribeTopicPartitionsApiKey = 75
 )
 
+type CommonResponseFields struct {
+	Size int32
+}
+
+func (r *CommonResponseFields) CalculateSize() int32 {
+	return 0
+}
+
+func (r *CommonResponseFields) Serialize() []byte {
+	return nil
+}
+
 type SupportedVersions struct {
 	MinVersion int16
 	MaxVersion int16
@@ -16,18 +28,26 @@ func HandleRequest(req *Request) Response {
 	case ApiVersionsApiKey, DescribeTopicPartitionsApiKey:
 		handler = Handlers[req.ApiKey]
 	}
-	handler.Init()
 	response := handler.Handle(req)
 	return response
 }
 
 var Handlers = map[int16]Handler{
-	ApiVersionsApiKey:             &ApiVersionHandler{},
-	DescribeTopicPartitionsApiKey: nil,
+	ApiVersionsApiKey: &ApiVersionHandler{
+		SupportedVersions: SupportedVersions{
+			MinVersion: 0,
+			MaxVersion: 4,
+		},
+	},
+	DescribeTopicPartitionsApiKey: &DTPHandler{
+		SupportedVersions: SupportedVersions{
+			MinVersion: 0,
+			MaxVersion: 0,
+		},
+	},
 }
 
 type Handler interface {
-	Init()
 	Handle(*Request) Response
 }
 type Response interface {
