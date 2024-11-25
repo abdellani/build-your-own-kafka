@@ -15,6 +15,9 @@ type CommonResponseFields struct {
 	Size int32
 }
 
+type ResponseHeader struct {
+	CorrelationID int32
+}
 type SupportedVersions struct {
 	MinVersion int16
 	MaxVersion int16

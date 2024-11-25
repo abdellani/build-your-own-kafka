@@ -182,9 +182,11 @@ func TestSerialize(t *testing.T) {
 			CommonResponseFields: messages.CommonResponseFields{
 				Size: 26,
 			},
-			CorrelationId: 78921354,
-			Error:         16845,
-			NumApiKeys:    3,
+			ResponseHeader: messages.ResponseHeader{
+				CorrelationID: 78921354,
+			},
+			Error:      16845,
+			NumApiKeys: 3,
 			ApiKeys: []messages.ApiKeys{
 				{ApiKey: messages.ApiVersionsApiKey,
 					MinVersion: 0,

@@ -4,11 +4,13 @@ type DTPHandler struct {
 	SupportedVersions
 }
 type DTPResponse struct {
+	CommonResponseFields
+	ResponseHeader
 	ThrottleTimeMs int32
 	NumTopics      int8
 	Topics         []Topic
-	NumNextCursor  int8
-	NextCursors    []NextCursor
+	NextCursor     NextCursor
+	TAG_BUFFER
 }
 
 type Topic struct {

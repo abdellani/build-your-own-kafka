@@ -2,7 +2,7 @@ package messages
 
 type ApiVersionResponse struct {
 	CommonResponseFields
-	CorrelationId  int32
+	ResponseHeader
 	Error          int16
 	NumApiKeys     int8
 	ApiKeys        []ApiKeys
@@ -32,9 +32,8 @@ func (h *ApiVersionHandler) Handle(req *Request) Response {
 
 func NewApiVersionResponse(correlationId int32, err int16) *ApiVersionResponse {
 	response := ApiVersionResponse{
-		CorrelationId: correlationId,
-		Error:         err,
-		NumApiKeys:    3,
+		Error:      err,
+		NumApiKeys: 3,
 		ApiKeys: []ApiKeys{
 			{ApiKey: ApiVersionsApiKey,
 				MinVersion: 0,
@@ -46,6 +45,7 @@ func NewApiVersionResponse(correlationId int32, err int16) *ApiVersionResponse {
 		ThrottleTimeMs: 0,
 	}
 	response.Size = response.CalculateSize()
+	response.CorrelationID = correlationId
 	return &response
 }
 
