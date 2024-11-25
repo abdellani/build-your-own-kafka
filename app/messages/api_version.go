@@ -55,19 +55,7 @@ func NewApiVersionResponse(correlationId int32, err int16) *ApiVersionResponse {
 }
 
 func (r *ApiVersionResponse) CalculateSize() int32 {
-	const (
-		CorrelationId  = 4
-		Error          = 2
-		NumApiKeys     = 1 //TODO: this is a VARINT not constant size int
-		ApiKeys        = 7
-		ThrottleTimeMs = 4
-		TAG_BUFFER     = 1
-	)
-
-	return int32(CorrelationId + Error +
-		NumApiKeys + len(r.ApiKeys)*ApiKeys +
-		ThrottleTimeMs +
-		TAG_BUFFER)
+	return CalculateSize(*r) - 4
 }
 
 func (r *ApiVersionResponse) Serialize() []byte {

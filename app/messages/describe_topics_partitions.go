@@ -14,22 +14,22 @@ type DTPResponse struct {
 type Topic struct {
 	ErrorCode                  int16
 	LenName                    int8
-	Name                       string
-	TopicId                    string
-	IsInternal                 bool
+	Name                       []byte
+	TopicId                    UUID
+	IsInternal                 int8
 	NumPartitions              int8
 	Partitions                 []Partition
 	TopicsAuthorizedOperations int32
 }
 
-type UUID string
+type UUID [16]byte
 type NextCursor struct {
 	NumTopicNames  int8
-	TopicNames     []TopicName
+	TopicNames     String
 	PartitionIndex int32
 }
 
-type TopicName string
+type String []byte
 
 type Partition struct {
 	ErrorCode              int16
@@ -53,7 +53,7 @@ func (h *DTPHandler) NewReponse(correlationId int32) Response {
 }
 
 func (r *DTPResponse) CalculateSize() int32 {
-	return 0
+	return CalculateSize(*r) - 4
 }
 
 func (r *DTPResponse) Serialize() []byte {

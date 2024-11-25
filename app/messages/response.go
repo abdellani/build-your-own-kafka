@@ -1,5 +1,9 @@
 package messages
 
+import (
+	"reflect"
+)
+
 const (
 	ApiVersionsApiKey             = 18
 	DescribeTopicPartitionsApiKey = 75
@@ -7,14 +11,6 @@ const (
 
 type CommonResponseFields struct {
 	Size int32
-}
-
-func (r *CommonResponseFields) CalculateSize() int32 {
-	return 0
-}
-
-func (r *CommonResponseFields) Serialize() []byte {
-	return nil
 }
 
 type SupportedVersions struct {
@@ -52,4 +48,26 @@ type Handler interface {
 }
 type Response interface {
 	Serialize() []byte
+}
+
+func CalculateSize(data any) int32 {
+	var size int32 = 0
+	dataType := reflect.TypeOf(data)
+	kind := dataType.Kind()
+	switch kind {
+	// byte is an alias of Uint8
+	case reflect.Int32, reflect.Int16, reflect.Int8, reflect.Uint8:
+		return int32(dataType.Size())
+	case reflect.Struct:
+		value := reflect.ValueOf(data)
+		for i := 0; i < value.NumField(); i++ {
+			size += CalculateSize(value.Field(i).Interface())
+		}
+	case reflect.Slice, reflect.Array:
+		value := reflect.ValueOf(data)
+		for i := 0; i < value.Len(); i++ {
+			size += CalculateSize(value.Index(i).Interface())
+		}
+	}
+	return size
 }
