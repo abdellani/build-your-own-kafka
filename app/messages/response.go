@@ -1,6 +1,8 @@
 package messages
 
 import (
+	"bytes"
+	"encoding/binary"
 	"reflect"
 )
 
@@ -70,4 +72,26 @@ func CalculateSize(data any) int32 {
 		}
 	}
 	return size
+}
+
+func Serialize(data any) []byte {
+	buff := bytes.Buffer{}
+	dataType := reflect.TypeOf(data)
+	kind := dataType.Kind()
+	switch kind {
+	// byte is an alias of Uint8
+	case reflect.Int32, reflect.Int16, reflect.Int8, reflect.Uint8:
+		binary.Write(&buff, binary.BigEndian, data)
+	case reflect.Struct:
+		value := reflect.ValueOf(data)
+		for i := 0; i < value.NumField(); i++ {
+			binary.Write(&buff, binary.BigEndian, Serialize(value.Field(i).Interface()))
+		}
+	case reflect.Slice, reflect.Array:
+		value := reflect.ValueOf(data)
+		for i := 0; i < value.Len(); i++ {
+			binary.Write(&buff, binary.BigEndian, Serialize(value.Index(i).Interface()))
+		}
+	}
+	return buff.Bytes()
 }

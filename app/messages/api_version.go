@@ -1,10 +1,5 @@
 package messages
 
-import (
-	"bytes"
-	"encoding/binary"
-)
-
 type ApiVersionResponse struct {
 	CommonResponseFields
 	CorrelationId  int32
@@ -58,17 +53,6 @@ func (r *ApiVersionResponse) CalculateSize() int32 {
 	return CalculateSize(*r) - 4
 }
 
-func (r *ApiVersionResponse) Serialize() []byte {
-	buff := bytes.Buffer{}
-	binary.Write(&buff, binary.BigEndian, r.Size)
-	binary.Write(&buff, binary.BigEndian, r.CorrelationId)
-	binary.Write(&buff, binary.BigEndian, r.Error)
-	binary.Write(&buff, binary.BigEndian, r.NumApiKeys)
-	for i := 0; i < len(r.ApiKeys); i++ {
-		ApiKeys := r.ApiKeys[i]
-		binary.Write(&buff, binary.BigEndian, ApiKeys)
-	}
-	binary.Write(&buff, binary.BigEndian, r.ThrottleTimeMs)
-	binary.Write(&buff, binary.BigEndian, r.TAG_BUFFER)
-	return buff.Bytes()
+func (r ApiVersionResponse) Serialize() []byte {
+	return Serialize(r)
 }
