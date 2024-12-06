@@ -1,8 +1,8 @@
 package messages
 
-type ApiVersionResponse struct {
+type ApiVersionsResponse struct {
 	CommonResponseFields
-	ResponseHeader
+	ResponseHeaderV0
 	Error          int16
 	NumApiKeys     int8
 	ApiKeys        []ApiKeys
@@ -17,21 +17,21 @@ type ApiKeys struct {
 	TAG_BUFFER
 }
 
-type ApiVersionHandler struct {
+type ApiVersionsHandler struct {
 	SupportedVersions
 }
 
 type TAG_BUFFER int8
 
-func (h *ApiVersionHandler) Handle(req *Request) Response {
+func (h *ApiVersionsHandler) Handle(req *Request) Response {
 	if !req.IsSupportedVersion(int16(h.MinVersion), h.MaxVersion) {
-		return NewApiVersionResponse(req.CorrelationId, 35)
+		return NewApiVersionsResponse(req.CorrelationId, 35)
 	}
-	return NewApiVersionResponse(req.CorrelationId, 0)
+	return NewApiVersionsResponse(req.CorrelationId, 0)
 }
 
-func NewApiVersionResponse(correlationId int32, err int16) *ApiVersionResponse {
-	response := ApiVersionResponse{
+func NewApiVersionsResponse(correlationId int32, err int16) *ApiVersionsResponse {
+	response := ApiVersionsResponse{
 		Error:      err,
 		NumApiKeys: 3,
 		ApiKeys: []ApiKeys{
@@ -49,10 +49,10 @@ func NewApiVersionResponse(correlationId int32, err int16) *ApiVersionResponse {
 	return &response
 }
 
-func (r *ApiVersionResponse) CalculateSize() int32 {
+func (r *ApiVersionsResponse) CalculateSize() int32 {
 	return CalculateSize(*r) - 4
 }
 
-func (r ApiVersionResponse) Serialize() []byte {
+func (r ApiVersionsResponse) Serialize() []byte {
 	return Serialize(r)
 }

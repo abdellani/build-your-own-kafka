@@ -34,7 +34,7 @@ func HandleRequest(req *Request) Response {
 }
 
 var Handlers = map[int16]Handler{
-	ApiVersionsApiKey: &ApiVersionHandler{
+	ApiVersionsApiKey: &ApiVersionsHandler{
 		SupportedVersions: SupportedVersions{
 			MinVersion: 0,
 			MaxVersion: 4,

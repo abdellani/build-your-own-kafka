@@ -178,7 +178,7 @@ func TestSerialize(t *testing.T) {
 		}
 	})
 	t.Run("a struct compose of intergers and Slices", func(t *testing.T) {
-		object := messages.ApiVersionResponse{
+		object := messages.ApiVersionsResponse{
 			CommonResponseFields: messages.CommonResponseFields{
 				Size: 26,
 			},
