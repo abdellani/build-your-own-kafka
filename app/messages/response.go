@@ -3,6 +3,7 @@ package messages
 import (
 	"bytes"
 	"encoding/binary"
+	"errors"
 	"reflect"
 )
 
@@ -11,23 +12,26 @@ const (
 	DescribeTopicPartitionsApiKey = 75
 )
 
-type CommonResponseFields struct {
-	Size int32
-}
-
-type ResponseHeader struct {
+type ResponseHeaderV0 struct {
 	CorrelationID int32
 }
+type ResponseHeaderV1 struct {
+	CorrelationID int32
+	TAG_BUFFER
+}
+
 type SupportedVersions struct {
 	MinVersion int16
 	MaxVersion int16
 }
 
-func HandleRequest(req *Request) Response {
+func HandleRequest(req *RequestHeaderV0) Response {
 	var handler Handler
 	switch req.ApiKey {
 	case ApiVersionsApiKey, DescribeTopicPartitionsApiKey:
 		handler = Handlers[req.ApiKey]
+	default:
+		panic(errors.New(`unsupported ApiKey request`))
 	}
 	response := handler.Handle(req)
 	return response
@@ -49,7 +53,7 @@ var Handlers = map[int16]Handler{
 }
 
 type Handler interface {
-	Handle(*Request) Response
+	Handle(*RequestHeaderV0) Response
 }
 type Response interface {
 	Serialize() []byte

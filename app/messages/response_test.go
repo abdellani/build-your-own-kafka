@@ -179,10 +179,8 @@ func TestSerialize(t *testing.T) {
 	})
 	t.Run("a struct compose of intergers and Slices", func(t *testing.T) {
 		object := messages.ApiVersionsResponse{
-			CommonResponseFields: messages.CommonResponseFields{
-				Size: 26,
-			},
-			ResponseHeader: messages.ResponseHeader{
+			Size: 26,
+			ResponseHeaderV0: messages.ResponseHeaderV0{
 				CorrelationID: 78921354,
 			},
 			Error:      16845,

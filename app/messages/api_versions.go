@@ -1,7 +1,7 @@
 package messages
 
 type ApiVersionsResponse struct {
-	CommonResponseFields
+	Size int32
 	ResponseHeaderV0
 	Error          int16
 	NumApiKeys     int8
@@ -23,7 +23,7 @@ type ApiVersionsHandler struct {
 
 type TAG_BUFFER int8
 
-func (h *ApiVersionsHandler) Handle(req *Request) Response {
+func (h *ApiVersionsHandler) Handle(req *RequestHeaderV0) Response {
 	if !req.IsSupportedVersion(int16(h.MinVersion), h.MaxVersion) {
 		return NewApiVersionsResponse(req.CorrelationId, 35)
 	}

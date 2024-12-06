@@ -4,8 +4,8 @@ type DTPHandler struct {
 	SupportedVersions
 }
 type DTPResponse struct {
-	CommonResponseFields
-	ResponseHeader
+	Size int32
+	ResponseHeaderV1
 	ThrottleTimeMs int32
 	NumTopics      int8
 	Topics         []Topic
@@ -31,8 +31,10 @@ type NextCursor struct {
 	PartitionIndex int32
 }
 
-type String []byte
-
+type String struct {
+	Length  []byte
+	Content []byte
+}
 type Partition struct {
 	ErrorCode              int16
 	PartitionIndex         int32
@@ -45,20 +47,22 @@ type Partition struct {
 	OfflineReplicas        int32
 }
 
-func (h *DTPHandler) Handle(req *Request) Response {
+func (h *DTPHandler) Handle(req *RequestHeaderV0) Response {
 
 	return h.NewReponse(req.CorrelationId)
 }
 
 func (h *DTPHandler) NewReponse(correlationId int32) Response {
-	return &DTPResponse{}
+	r := DTPResponse{}
+	r.Size = r.CalculateSize()
+	r.CorrelationID = correlationId
+	return &r
 }
 
 func (r *DTPResponse) CalculateSize() int32 {
 	return CalculateSize(*r) - 4
 }
 
-func (r *DTPResponse) Serialize() []byte {
-
-	return nil
+func (r DTPResponse) Serialize() []byte {
+	return Serialize(r)
 }
