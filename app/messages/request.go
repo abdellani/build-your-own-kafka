@@ -1,18 +1,12 @@
 package messages
 
 import (
-	"bytes"
 	"encoding/binary"
 )
 
 func (r *RequestHeaderV2) IsSupportedVersion(min, max int16) bool {
 	return min <= r.ApiVersion &&
 		r.ApiVersion <= max
-}
-
-func DeserializeRequestHeader(b bytes.Buffer) *RequestHeaderV2 {
-	req, _ := DeserializeRequestHeaderV2(b.Bytes(), 4)
-	return req
 }
 
 func DeserializeRequest(bytes []byte) IRequest {
@@ -26,7 +20,7 @@ func DeserializeRequest(bytes []byte) IRequest {
 
 	switch headerV2.ApiKey {
 	case API_KEY_API_VERSIONS:
-		return &APIVErsionsRequest{
+		return &APIVersionsRequest{
 			Size:            size,
 			RequestHeaderV2: *headerV2,
 		}

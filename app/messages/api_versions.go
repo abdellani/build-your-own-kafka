@@ -24,7 +24,7 @@ type ApiVersionsHandler struct {
 type TAG_BUFFER int8
 
 func (h *ApiVersionsHandler) Handle(req IRequest) Response {
-	r := req.(*RequestHeaderV2)
+	r := req.(*APIVersionsRequest)
 	if !r.IsSupportedVersion(int16(h.MinVersion), h.MaxVersion) {
 		return NewApiVersionsResponse(r.CorrelationId, 35)
 	}

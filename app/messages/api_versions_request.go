@@ -1,6 +1,6 @@
 package messages
 
-type APIVErsionsRequest struct {
+type APIVersionsRequest struct {
 	Size int32
 	RequestHeaderV2
 	//TODO add other fields
