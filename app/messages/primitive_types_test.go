@@ -8,9 +8,10 @@ import (
 )
 
 func TestDeserializeRequestHeaderV2(t *testing.T) {
-
-	payload := []byte{
-		0x00, 0x00, 0x00, 0x13, //Size
+	var RequestCommonField = []byte{
+		0x00, 0x00, 0x00, 0x14, //Size
+	}
+	var RequestHeaderV2Example = []byte{
 		//Request Header
 		0x00, 0x4b, //ApiKey (int16)
 		0x00, 0x04, //ApiVersion (int16)
@@ -20,6 +21,7 @@ func TestDeserializeRequestHeaderV2(t *testing.T) {
 		0x6b, 0x61, 0x66, 0x6b, 0x61, 0x2d, 0x63, 0x6c, 0x69, //String ([]byte)
 		0x00, //TAG_BUFFER (byte)
 	}
+	payload := append(RequestCommonField, RequestHeaderV2Example...)
 	got, got_offset := messages.DeserializeRequestHeaderV2(payload, 4)
 	want_offset := 24
 	want := &messages.RequestHeaderV2{

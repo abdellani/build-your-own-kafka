@@ -24,17 +24,12 @@ type Topic struct {
 	TopicsAuthorizedOperations int32
 }
 
-type UUID [16]byte
 type NextCursor struct {
 	NumTopicNames  int8
 	TopicNames     String
 	PartitionIndex int32
 }
 
-type String struct {
-	Length  []byte
-	Content []byte
-}
 type Partition struct {
 	ErrorCode              int16
 	PartitionIndex         int32
@@ -47,9 +42,9 @@ type Partition struct {
 	OfflineReplicas        int32
 }
 
-func (h *DTPHandler) Handle(req *RequestHeaderV0) Response {
-
-	return h.NewReponse(req.CorrelationId)
+func (h *DTPHandler) Handle(req IRequest) Response {
+	r := req.(*DTPRequest)
+	return h.NewReponse(r.CorrelationId)
 }
 
 func (h *DTPHandler) NewReponse(correlationId int32) Response {

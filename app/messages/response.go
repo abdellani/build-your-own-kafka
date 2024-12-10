@@ -3,60 +3,55 @@ package messages
 import (
 	"bytes"
 	"encoding/binary"
-	"errors"
 	"reflect"
 )
 
 const (
-	ApiVersionsApiKey             = 18
-	DescribeTopicPartitionsApiKey = 75
+	API_KEY_API_VERSIONS              = 18
+	API_KEY_DESCRIBE_TOPIC_PARTITIONS = 75
 )
-
-type ResponseHeaderV0 struct {
-	CorrelationID int32
-}
-type ResponseHeaderV1 struct {
-	CorrelationID int32
-	TAG_BUFFER
-}
 
 type SupportedVersions struct {
 	MinVersion int16
 	MaxVersion int16
 }
+type IRequest interface {
+	ApiKeyValue() int16
+}
 
-func HandleRequest(req *RequestHeaderV0) Response {
+type Handler interface {
+	Handle(IRequest) Response
+}
+
+type Response interface {
+	Serialize() []byte
+}
+
+func HandleRequest(req IRequest) Response {
 	var handler Handler
-	switch req.ApiKey {
-	case ApiVersionsApiKey, DescribeTopicPartitionsApiKey:
-		handler = Handlers[req.ApiKey]
+	switch req.ApiKeyValue() {
+	case API_KEY_API_VERSIONS, API_KEY_DESCRIBE_TOPIC_PARTITIONS:
+		handler = Handlers[req.ApiKeyValue()]
 	default:
-		panic(errors.New(`unsupported ApiKey request`))
+		handler = Handlers[API_KEY_API_VERSIONS]
 	}
 	response := handler.Handle(req)
 	return response
 }
 
 var Handlers = map[int16]Handler{
-	ApiVersionsApiKey: &ApiVersionsHandler{
+	API_KEY_API_VERSIONS: &ApiVersionsHandler{
 		SupportedVersions: SupportedVersions{
 			MinVersion: 0,
 			MaxVersion: 4,
 		},
 	},
-	DescribeTopicPartitionsApiKey: &DTPHandler{
+	API_KEY_DESCRIBE_TOPIC_PARTITIONS: &DTPHandler{
 		SupportedVersions: SupportedVersions{
 			MinVersion: 0,
 			MaxVersion: 0,
 		},
 	},
-}
-
-type Handler interface {
-	Handle(*RequestHeaderV0) Response
-}
-type Response interface {
-	Serialize() []byte
 }
 
 func CalculateSize(data any) int32 {

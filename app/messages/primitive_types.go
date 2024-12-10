@@ -16,6 +16,21 @@ type NULLABLE_STRING struct {
 	String []byte
 }
 
+func DeserializeNullableString(bytes []byte, offset int) (*NULLABLE_STRING, int) {
+	s := &NULLABLE_STRING{}
+	buffer := bytes[offset : offset+2]
+	offset += 2
+	s.N = int16(binary.BigEndian.Uint16(buffer))
+	if s.N == -1 {
+		return s, offset
+	}
+
+	s.String = bytes[offset : offset+int(s.N)]
+	offset += int(s.N)
+
+	return s, offset
+}
+
 type COMPACT_STRING struct {
 	N      UNSIGNED_VARINT // set to N+1
 	String []byte
@@ -33,7 +48,6 @@ type COMPACT_ARRAY[T any] struct {
 }
 
 type RequestHeaderV0 struct {
-	Size          int32 // Common
 	ApiKey        int16
 	ApiVersion    int16
 	CorrelationId int32
@@ -80,13 +94,8 @@ func DeserializeRequestHeaderV2(bytes []byte, offset int) (*RequestHeaderV2, int
 	offset += 4
 	req.CorrelationId = int32(binary.BigEndian.Uint32(buffer))
 
-	buffer = bytes[offset : offset+2]
-	offset += 2
-	req.ClientId.N = int16(binary.BigEndian.Uint16(buffer))
-
-	buffer = bytes[offset : offset+int(req.ClientId.N)]
-	offset += int(req.ClientId.N)
-	req.ClientId.String = buffer
+	clientId, offset := DeserializeNullableString(bytes, offset)
+	req.ClientId = *clientId
 
 	buffer = bytes[offset : offset+1]
 	req.TAG_BUFFER = TAG_BUFFER(buffer[0])

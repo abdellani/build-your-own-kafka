@@ -23,11 +23,12 @@ type ApiVersionsHandler struct {
 
 type TAG_BUFFER int8
 
-func (h *ApiVersionsHandler) Handle(req *RequestHeaderV0) Response {
-	if !req.IsSupportedVersion(int16(h.MinVersion), h.MaxVersion) {
-		return NewApiVersionsResponse(req.CorrelationId, 35)
+func (h *ApiVersionsHandler) Handle(req IRequest) Response {
+	r := req.(*RequestHeaderV2)
+	if !r.IsSupportedVersion(int16(h.MinVersion), h.MaxVersion) {
+		return NewApiVersionsResponse(r.CorrelationId, 35)
 	}
-	return NewApiVersionsResponse(req.CorrelationId, 0)
+	return NewApiVersionsResponse(r.CorrelationId, 0)
 }
 
 func NewApiVersionsResponse(correlationId int32, err int16) *ApiVersionsResponse {
@@ -35,10 +36,10 @@ func NewApiVersionsResponse(correlationId int32, err int16) *ApiVersionsResponse
 		Error:      err,
 		NumApiKeys: 3,
 		ApiKeys: []ApiKeys{
-			{ApiKey: ApiVersionsApiKey,
+			{ApiKey: API_KEY_API_VERSIONS,
 				MinVersion: 0,
 				MaxVersion: 4},
-			{ApiKey: DescribeTopicPartitionsApiKey,
+			{ApiKey: API_KEY_DESCRIBE_TOPIC_PARTITIONS,
 				MinVersion: 0,
 				MaxVersion: 0},
 		},
