@@ -7,8 +7,7 @@ type DTPResponse struct {
 	Size int32
 	ResponseHeaderV1
 	ThrottleTimeMs int32
-	NumTopics      int8
-	Topics         []Topic //COMPACT_ARRAY[Topic]
+	Topics         COMPACT_ARRAY[Topic]
 	NextCursor     NextCursor
 	TAG_BUFFER
 }
@@ -49,7 +48,6 @@ func (h *DTPHandler) Handle(r IRequest) IResponse {
 	req := r.(*DTPRequest)
 	//r.DTPRequestBody.Topics.Items[0]
 	res := h.NewReponse(req.CorrelationId)
-	res.NumTopics = 2
 	topic := Topic{
 		ErrorCode: 3,
 		LenName:   int8(len(req.Topics[0].Name.String)) + 1,
