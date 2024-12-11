@@ -20,8 +20,7 @@ func TestCalculateSize(t *testing.T) {
 				//1 for length
 				{
 					ErrorCode:  0,               //2
-					LenName:    1,               //1
-					Name:       []byte{0},       //1
+					Name:       []byte{0},       //1+1
 					TopicId:    messages.UUID{}, //16
 					IsInternal: 0,               //1
 					// 1 for partitions length

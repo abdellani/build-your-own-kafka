@@ -10,6 +10,7 @@ type ARRAY[T any] []T
 type COMPACT_ARRAY[T any] []T
 type COMPACT_STRING []byte
 type NULLABLE_STRING []byte
+type COMPACT_NULLABLE_STRING []byte
 type UNSIGNED_VARINT []byte
 type NULLABLE_FIELD[T any] struct {
 	IsNull bool
@@ -31,6 +32,18 @@ func DeserializeNullableString(bytes []byte, offset int) (*NULLABLE_STRING, int)
 	return &s, offset
 }
 
+func (s COMPACT_NULLABLE_STRING) Serialize() []byte {
+	buffer := bytes.Buffer{}
+	//TODO use varint
+	n := byte(len(s) + 1)
+	binary.Write(&buffer, binary.BigEndian, n)
+	if len(s) > 0 {
+		binary.Write(&buffer, binary.BigEndian, s)
+	}
+	return buffer.Bytes()
+
+}
+func (s COMPACT_NULLABLE_STRING) IsPrimitiveType() bool { return true }
 func (s NULLABLE_STRING) Serialize() []byte {
 	buffer := bytes.Buffer{}
 	n := int16(len(s))

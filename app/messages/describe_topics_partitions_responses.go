@@ -14,8 +14,7 @@ type DTPResponse struct {
 
 type Topic struct {
 	ErrorCode                  int16
-	LenName                    int8
-	Name                       []byte
+	Name                       COMPACT_NULLABLE_STRING
 	TopicId                    UUID
 	IsInternal                 int8
 	Partitions                 COMPACT_ARRAY[Partition]
@@ -49,8 +48,7 @@ func (h *DTPHandler) Handle(r IRequest) IResponse {
 	res := h.NewReponse(req.CorrelationId)
 	topic := Topic{
 		ErrorCode: 3,
-		LenName:   int8(len(req.Topics[0].Name)) + 1,
-		Name:      req.Topics[0].Name,
+		Name:      COMPACT_NULLABLE_STRING(req.Topics[0].Name),
 		TopicId:   [16]byte{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
 	}
 	res.Topics = append(res.Topics, topic)
