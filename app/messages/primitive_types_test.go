@@ -28,11 +28,8 @@ func TestDeserializeRequestHeaderV2(t *testing.T) {
 		ApiKey:        75,
 		ApiVersion:    4,
 		CorrelationId: 0x24354657,
-		ClientId: messages.NULLABLE_STRING{
-			N:      9,
-			String: []byte{0x6b, 0x61, 0x66, 0x6b, 0x61, 0x2d, 0x63, 0x6c, 0x69},
-		},
-		TAG_BUFFER: 0,
+		ClientId:      messages.NULLABLE_STRING{0x6b, 0x61, 0x66, 0x6b, 0x61, 0x2d, 0x63, 0x6c, 0x69},
+		TAG_BUFFER:    0,
 	}
 	if got_offset != want_offset {
 		t.Errorf("wrong offset, got %d, want %d", got_offset, want_offset)
@@ -94,6 +91,25 @@ func TestCOMPACT_STRING(t *testing.T) {
 		want := []byte{0x05, 0x10, 0x11, 0x12, 0x13}
 		if !reflect.DeepEqual(got, want) {
 			t.Errorf("COMPACT_STRING serialization error, got %v,want %v", got, want)
+		}
+	})
+}
+
+func TestNULLABLE_STRING(t *testing.T) {
+	t.Run("NULL Serialize", func(t *testing.T) {
+		data := messages.NULLABLE_STRING{}
+		got := data.Serialize()
+		want := []byte{0xFF, 0xff}
+		if !reflect.DeepEqual(got, want) {
+			t.Errorf("Serialization error, got %v, want %v", got, want)
+		}
+	})
+	t.Run("NON-EMPTY Serialize", func(t *testing.T) {
+		data := messages.NULLABLE_STRING{0x61, 0x62, 0x63}
+		got := data.Serialize()
+		want := []byte{0x0, 0x3, 0x61, 0x62, 0x63}
+		if !reflect.DeepEqual(got, want) {
+			t.Errorf("Serialization error, got %v, want %v", got, want)
 		}
 	})
 }

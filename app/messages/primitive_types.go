@@ -6,28 +6,45 @@ import (
 )
 
 type UUID [16]byte
-
-type NULLABLE_STRING struct {
-	N      int16 // null = -1
-	String []byte
+type ARRAY[T any] []T
+type COMPACT_ARRAY[T any] []T
+type COMPACT_STRING []byte
+type NULLABLE_STRING []byte
+type UNSIGNED_VARINT []byte
+type NULLABLE_FIELD[T any] struct {
+	IsNull bool
+	Field  T
 }
 
 func DeserializeNullableString(bytes []byte, offset int) (*NULLABLE_STRING, int) {
-	s := &NULLABLE_STRING{}
+	s := NULLABLE_STRING{}
 	buffer := bytes[offset : offset+2]
 	offset += 2
-	s.N = int16(binary.BigEndian.Uint16(buffer))
-	if s.N == -1 {
-		return s, offset
+	n := int16(binary.BigEndian.Uint16(buffer))
+	if n == -1 {
+		return &s, offset
 	}
 
-	s.String = bytes[offset : offset+int(s.N)]
-	offset += int(s.N)
+	s = bytes[offset : offset+int(n)]
+	offset += int(n)
 
-	return s, offset
+	return &s, offset
 }
 
-type COMPACT_STRING []byte
+func (s NULLABLE_STRING) Serialize() []byte {
+	buffer := bytes.Buffer{}
+	n := int16(len(s))
+	if n == 0 {
+		binary.Write(&buffer, binary.BigEndian, int16(-1))
+		return buffer.Bytes()
+	}
+	binary.Write(&buffer, binary.BigEndian, n)
+	binary.Write(&buffer, binary.BigEndian, s)
+	return buffer.Bytes()
+
+}
+
+func (s NULLABLE_STRING) IsPrimitiveType() bool { return true }
 
 func (s COMPACT_STRING) Serialize() []byte {
 	buffer := bytes.Buffer{}
@@ -38,19 +55,6 @@ func (s COMPACT_STRING) Serialize() []byte {
 	return buffer.Bytes()
 }
 func (s COMPACT_STRING) IsPrimitiveType() bool { return true }
-
-type UNSIGNED_VARINT []byte
-
-type ARRAY[T any] struct {
-	N     int32 // -1 means null
-	Items []T
-}
-type COMPACT_ARRAY[T any] []T
-
-type NULLABLE_FIELD[T any] struct {
-	IsNull bool
-	Field  T
-}
 
 func (f NULLABLE_FIELD[T]) Serialize() []byte {
 	if f.IsNull {

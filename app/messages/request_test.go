@@ -38,10 +38,7 @@ func TestDeserializeRequest(t *testing.T) {
 				ApiKey:        75,
 				ApiVersion:    0,
 				CorrelationId: 0x270A52D0,
-				ClientId: messages.NULLABLE_STRING{
-					N:      9,
-					String: []byte{0x6b, 0x61, 0x66, 0x6b, 0x61, 0x2d, 0x63, 0x6c, 0x69},
-				},
+				ClientId:      messages.NULLABLE_STRING{0x6b, 0x61, 0x66, 0x6b, 0x61, 0x2d, 0x63, 0x6c, 0x69},
 			},
 			DTPRequestBody: messages.DTPRequestBody{
 				Topics: messages.COMPACT_ARRAY[messages.DTPRequestTopic]{
