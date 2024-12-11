@@ -27,7 +27,7 @@ type Topic struct {
 
 type NextCursor struct {
 	NumTopicNames  int8
-	TopicNames     String
+	TopicNames     COMPACT_STRING
 	PartitionIndex int32
 	TAG_BUFFER
 }

@@ -7,11 +7,6 @@ import (
 
 type UUID [16]byte
 
-type String struct {
-	Length  []byte
-	Content []byte
-}
-
 type NULLABLE_STRING struct {
 	N      int16 // null = -1
 	String []byte
