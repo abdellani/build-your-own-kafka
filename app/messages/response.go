@@ -55,26 +55,9 @@ var Handlers = map[int16]Handler{
 	},
 }
 
-func CalculateSize(data any) int32 {
-	var size int32 = 0
-	dataType := reflect.TypeOf(data)
-	kind := dataType.Kind()
-	switch kind {
-	// byte is an alias of Uint8
-	case reflect.Int32, reflect.Int16, reflect.Int8, reflect.Uint8:
-		return int32(dataType.Size())
-	case reflect.Struct:
-		value := reflect.ValueOf(data)
-		for i := 0; i < value.NumField(); i++ {
-			size += CalculateSize(value.Field(i).Interface())
-		}
-	case reflect.Slice, reflect.Array:
-		value := reflect.ValueOf(data)
-		for i := 0; i < value.Len(); i++ {
-			size += CalculateSize(value.Index(i).Interface())
-		}
-	}
-	return size
+func CalculateSize(data ISerializable) int32 {
+	//TODO avoid serializing twice
+	return int32(len(data.Serialize()))
 }
 
 func Serialize(data any) []byte {
