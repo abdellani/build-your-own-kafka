@@ -19,14 +19,14 @@ func TestCalculateSize(t *testing.T) {
 			Topics: messages.COMPACT_ARRAY[messages.Topic]{ //Total 28 bytes
 				//1 for length
 				{
-					ErrorCode:                  0,               //2
-					LenName:                    1,               //1
-					Name:                       []byte{0},       //1
-					TopicId:                    messages.UUID{}, //16
-					IsInternal:                 0,               //1
-					NumPartitions:              0,               //1
-					TopicsAuthorizedOperations: 0,               //4
-					TAG_BUFFER:                 0,               //1
+					ErrorCode:  0,               //2
+					LenName:    1,               //1
+					Name:       []byte{0},       //1
+					TopicId:    messages.UUID{}, //16
+					IsInternal: 0,               //1
+					// 1 for partitions length
+					TopicsAuthorizedOperations: 0, //4
+					TAG_BUFFER:                 0, //1
 				},
 			},
 			NextCursor: messages.NULLABLE_FIELD[messages.NextCursor]{

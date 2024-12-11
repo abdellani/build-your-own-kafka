@@ -18,8 +18,7 @@ type Topic struct {
 	Name                       []byte
 	TopicId                    UUID
 	IsInternal                 int8
-	NumPartitions              int8
-	Partitions                 []Partition
+	Partitions                 COMPACT_ARRAY[Partition]
 	TopicsAuthorizedOperations int32
 	TAG_BUFFER
 }
