@@ -3,6 +3,7 @@ package messages
 import (
 	"bytes"
 	"encoding/binary"
+	"fmt"
 	"reflect"
 )
 
@@ -20,14 +21,14 @@ type IRequest interface {
 }
 
 type Handler interface {
-	Handle(IRequest) Response
+	Handle(IRequest) IResponse
 }
 
-type Response interface {
+type IResponse interface {
 	Serialize() []byte
 }
 
-func HandleRequest(req IRequest) Response {
+func HandleRequest(req IRequest) IResponse {
 	var handler Handler
 	switch req.ApiKeyValue() {
 	case API_KEY_API_VERSIONS, API_KEY_DESCRIBE_TOPIC_PARTITIONS:
@@ -78,12 +79,21 @@ func CalculateSize(data any) int32 {
 
 func Serialize(data any) []byte {
 	buff := bytes.Buffer{}
+	serializable, ok := data.(ISerializable)
+	primitive, ok2 := data.(IPrimitiveType)
+	if ok && ok2 && primitive.isPrimitiveType() {
+		binary.Write(&buff, binary.BigEndian, serializable.Serialize())
+		return buff.Bytes()
+	}
 	dataType := reflect.TypeOf(data)
 	kind := dataType.Kind()
 	switch kind {
 	// byte is an alias of Uint8
 	case reflect.Int32, reflect.Int16, reflect.Int8, reflect.Uint8:
-		binary.Write(&buff, binary.BigEndian, data)
+		err := binary.Write(&buff, binary.BigEndian, data)
+		if err != nil {
+			panic(err)
+		}
 	case reflect.Struct:
 		value := reflect.ValueOf(data)
 		for i := 0; i < value.NumField(); i++ {
@@ -94,6 +104,10 @@ func Serialize(data any) []byte {
 		for i := 0; i < value.Len(); i++ {
 			binary.Write(&buff, binary.BigEndian, Serialize(value.Index(i).Interface()))
 		}
+	case reflect.Int:
+		panic("Should not use int type, because the system change depending on the architecture")
+	default:
+		panic(fmt.Sprintf("Kind not support in serialization, %v", kind))
 	}
 	return buff.Bytes()
 }

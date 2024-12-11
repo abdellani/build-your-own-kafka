@@ -41,3 +41,48 @@ func TestDeserializeRequestHeaderV2(t *testing.T) {
 		t.Errorf("Serialization Error, got %+v,want %+v", got, want)
 	}
 }
+
+func TestCOMPACT_ARRAY(t *testing.T) {
+	t.Run("Serialize an array of int16", func(t *testing.T) {
+		data := messages.COMPACT_ARRAY[int16]{
+			1, 2, 3, 4, 5,
+		}
+		got := data.Serialize()
+		want := []byte{6, 0, 1, 0, 2, 0, 3, 0, 4, 0, 5}
+		if !reflect.DeepEqual(got, want) {
+			t.Errorf("Serialization error, got %v want %v", got, want)
+		}
+	})
+
+	t.Run("Serialize an array of []int16", func(t *testing.T) {
+		data := messages.COMPACT_ARRAY[[]int16]{
+			[]int16{1, 2, 3, 10, 11, 12},
+		}
+		got := data.Serialize()
+		want := []byte{2, 0, 1, 0, 2, 0, 3, 0, 10, 0, 11, 0, 12}
+		if !reflect.DeepEqual(got, want) {
+			t.Errorf("Serialization error, got %v want %v", got, want)
+		}
+	})
+
+	t.Run("serialize a COMPACT_ARRAY[struct]", func(t *testing.T) {
+		data := messages.COMPACT_ARRAY[struct {
+			ID             []byte
+			ThrottleTimeMs int16
+		}]{
+			{ID: []byte{0x49, 0x50, 0x51}, ThrottleTimeMs: 30},
+			{ID: []byte{0x25, 0x98, 0x10}, ThrottleTimeMs: 15},
+		}
+		got := messages.Serialize(data)
+		want := []byte{
+			0x3,
+			0x49, 0x50, 0x51,
+			0x00, 0x1E,
+			0x25, 0x98, 0x10,
+			0x00, 0x0F,
+		}
+		if !reflect.DeepEqual(got, want) {
+			t.Errorf("wrong serialization of COMPACT_ARRAY, got %v, want %v", got, want)
+		}
+	})
+}

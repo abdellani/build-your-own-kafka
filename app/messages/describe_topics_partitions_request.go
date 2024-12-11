@@ -31,8 +31,8 @@ func DeserializeDTPBody(data []byte, offset int) (*DTPRequestBody, int) {
 	body := &DTPRequestBody{}
 	buffer := data[offset : offset+1]
 	offset += 1
-	body.Topics.N = buffer
-	for i := byte(1); i < body.Topics.N[0]; i++ {
+	N := buffer
+	for i := byte(1); i < N[0]; i++ {
 		/*
 			COMPACT_STRING {
 				N UNSIGNED_VARINT (+1)
@@ -49,7 +49,7 @@ func DeserializeDTPBody(data []byte, offset int) (*DTPRequestBody, int) {
 		buffer = data[offset : offset+1]
 		offset += 1
 		item.TAG_BUFFER = TAG_BUFFER(buffer[0])
-		body.Topics.Items = append(body.Topics.Items, item)
+		body.Topics = append(body.Topics, item)
 	}
 	buffer = data[offset : offset+4]
 	offset += 4

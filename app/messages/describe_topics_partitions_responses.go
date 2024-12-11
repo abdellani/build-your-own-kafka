@@ -8,7 +8,7 @@ type DTPResponse struct {
 	ResponseHeaderV1
 	ThrottleTimeMs int32
 	NumTopics      int8
-	Topics         []Topic
+	Topics         []Topic //COMPACT_ARRAY[Topic]
 	NextCursor     NextCursor
 	TAG_BUFFER
 }
@@ -44,7 +44,7 @@ type Partition struct {
 	OfflineReplicas        int32
 }
 
-func (h *DTPHandler) Handle(r IRequest) Response {
+func (h *DTPHandler) Handle(r IRequest) IResponse {
 
 	req := r.(*DTPRequest)
 	//r.DTPRequestBody.Topics.Items[0]
@@ -52,8 +52,8 @@ func (h *DTPHandler) Handle(r IRequest) Response {
 	res.NumTopics = 2
 	topic := Topic{
 		ErrorCode: 3,
-		LenName:   int8(len(req.Topics.Items[0].Name.String)) + 1,
-		Name:      req.Topics.Items[0].Name.String,
+		LenName:   int8(len(req.Topics[0].Name.String)) + 1,
+		Name:      req.Topics[0].Name.String,
 		TopicId:   [16]byte{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
 	}
 	res.Topics = append(res.Topics, topic)

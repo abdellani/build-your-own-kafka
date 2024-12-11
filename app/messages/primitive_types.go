@@ -1,6 +1,7 @@
 package messages
 
 import (
+	"bytes"
 	"encoding/binary"
 )
 
@@ -42,9 +43,30 @@ type ARRAY[T any] struct {
 	N     int32 // -1 means null
 	Items []T
 }
-type COMPACT_ARRAY[T any] struct {
-	N     []byte // item count + 1
-	Items []T
+type COMPACT_ARRAY[T any] []T
+
+func (c COMPACT_ARRAY[T]) Serialize() []byte {
+	buffer := bytes.Buffer{}
+	//TODO: use varint
+	n := byte(len(c) + 1)
+	binary.Write(&buffer, binary.BigEndian, n)
+	if len(c) == 0 {
+		return buffer.Bytes()
+	}
+	for i := 0; i < len(c); i++ {
+		item := c[i]
+		binary.Write(&buffer, binary.BigEndian, Serialize(item))
+	}
+	return buffer.Bytes()
+}
+
+func (C COMPACT_ARRAY[T]) isPrimitiveType() bool { return true }
+
+type ISerializable interface {
+	Serialize() []byte
+}
+type IPrimitiveType interface {
+	isPrimitiveType() bool
 }
 
 type RequestHeaderV0 struct {

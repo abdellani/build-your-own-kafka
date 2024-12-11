@@ -45,13 +45,10 @@ func TestDeserializeRequest(t *testing.T) {
 			},
 			DTPRequestBody: messages.DTPRequestBody{
 				Topics: messages.COMPACT_ARRAY[messages.DTPRequestTopic]{
-					N: []byte{2},
-					Items: []messages.DTPRequestTopic{
-						{
-							Name: messages.COMPACT_STRING{
-								N:      []byte{4},
-								String: []byte{0x66, 0x6f, 0x6f},
-							},
+					{
+						Name: messages.COMPACT_STRING{
+							N:      []byte{4},
+							String: []byte{0x66, 0x6f, 0x6f},
 						},
 					},
 				},
@@ -67,5 +64,4 @@ func TestDeserializeRequest(t *testing.T) {
 			t.Errorf("wrong DTPBody, got \n%+v \nwant \n%+v", got, want)
 		}
 	})
-
 }
