@@ -42,10 +42,10 @@ func DeserializeDTPBody(data []byte, offset int) (*DTPRequestBody, int) {
 		item := DTPRequestTopic{}
 		buffer = data[offset : offset+1]
 		offset += 1
-		item.Name.N = buffer
-		buffer = data[offset : offset+int(item.Name.N[0]-1)]
-		offset += int(item.Name.N[0] - 1)
-		item.Name.String = buffer
+		n := buffer
+		buffer = data[offset : offset+int(n[0]-1)]
+		offset += int(n[0] - 1)
+		item.Name = buffer
 		buffer = data[offset : offset+1]
 		offset += 1
 		item.TAG_BUFFER = TAG_BUFFER(buffer[0])
@@ -54,13 +54,14 @@ func DeserializeDTPBody(data []byte, offset int) (*DTPRequestBody, int) {
 	buffer = data[offset : offset+4]
 	offset += 4
 	body.ResponsePartitionLimit = int32(binary.BigEndian.Uint32(buffer))
+
 	buffer = data[offset : offset+1]
 	offset += 1
-	body.Cursor.TopicName.N = buffer
-	buffer = data[offset : offset+int(body.Cursor.TopicName.N[0])]
-	offset += int(body.Cursor.TopicName.N[0])
+	n := buffer
+	buffer = data[offset : offset+int(n[0])]
+	offset += int(n[0])
+	body.Cursor.TopicName = buffer
 
-	body.Cursor.TopicName.String = buffer
 	buffer = data[offset : offset+4]
 	offset += 4
 	body.Cursor.PartitionIndex = int32(binary.BigEndian.Uint32(buffer))

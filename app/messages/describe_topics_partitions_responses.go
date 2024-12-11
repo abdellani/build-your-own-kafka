@@ -8,7 +8,7 @@ type DTPResponse struct {
 	ResponseHeaderV1
 	ThrottleTimeMs int32
 	Topics         COMPACT_ARRAY[Topic]
-	NextCursor     NextCursor
+	NextCursor     NULLABLE_FIELD[NextCursor]
 	TAG_BUFFER
 }
 
@@ -25,8 +25,7 @@ type Topic struct {
 }
 
 type NextCursor struct {
-	NumTopicNames  int8
-	TopicNames     COMPACT_STRING
+	TopicName      COMPACT_STRING
 	PartitionIndex int32
 	TAG_BUFFER
 }
@@ -41,6 +40,7 @@ type Partition struct {
 	EligibleLeaderReplicas int32
 	LastKnownElr           int32
 	OfflineReplicas        int32
+	TAG_BUFFER
 }
 
 func (h *DTPHandler) Handle(r IRequest) IResponse {
@@ -50,14 +50,12 @@ func (h *DTPHandler) Handle(r IRequest) IResponse {
 	res := h.NewReponse(req.CorrelationId)
 	topic := Topic{
 		ErrorCode: 3,
-		LenName:   int8(len(req.Topics[0].Name.String)) + 1,
-		Name:      req.Topics[0].Name.String,
+		LenName:   int8(len(req.Topics[0].Name)) + 1,
+		Name:      req.Topics[0].Name,
 		TopicId:   [16]byte{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
 	}
 	res.Topics = append(res.Topics, topic)
-	res.NextCursor = NextCursor{
-		NumTopicNames: -1,
-	}
+	res.NextCursor = NULLABLE_FIELD[NextCursor]{IsNull: true}
 	res.Size = res.CalculateSize()
 	return res
 }

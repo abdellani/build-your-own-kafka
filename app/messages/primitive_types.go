@@ -27,10 +27,17 @@ func DeserializeNullableString(bytes []byte, offset int) (*NULLABLE_STRING, int)
 	return s, offset
 }
 
-type COMPACT_STRING struct {
-	N      UNSIGNED_VARINT // set to N+1
-	String []byte
+type COMPACT_STRING []byte
+
+func (s COMPACT_STRING) Serialize() []byte {
+	buffer := bytes.Buffer{}
+	//TODO use varint
+	n := byte(len(s) + 1)
+	binary.Write(&buffer, binary.BigEndian, n)
+	binary.Write(&buffer, binary.BigEndian, s)
+	return buffer.Bytes()
 }
+func (s COMPACT_STRING) IsPrimitiveType() bool { return true }
 
 type UNSIGNED_VARINT []byte
 
@@ -40,6 +47,19 @@ type ARRAY[T any] struct {
 }
 type COMPACT_ARRAY[T any] []T
 
+type NULLABLE_FIELD[T any] struct {
+	IsNull bool
+	Field  T
+}
+
+func (f NULLABLE_FIELD[T]) Serialize() []byte {
+	if f.IsNull {
+		return []byte{0xFF}
+	}
+	return Serialize(f.Field)
+}
+
+func (NULLABLE_FIELD[T]) IsPrimitiveType() bool { return true }
 func (c COMPACT_ARRAY[T]) Serialize() []byte {
 	buffer := bytes.Buffer{}
 	//TODO: use varint
@@ -55,13 +75,13 @@ func (c COMPACT_ARRAY[T]) Serialize() []byte {
 	return buffer.Bytes()
 }
 
-func (C COMPACT_ARRAY[T]) isPrimitiveType() bool { return true }
+func (C COMPACT_ARRAY[T]) IsPrimitiveType() bool { return true }
 
 type ISerializable interface {
 	Serialize() []byte
 }
 type IPrimitiveType interface {
-	isPrimitiveType() bool
+	IsPrimitiveType() bool
 }
 
 type RequestHeaderV0 struct {

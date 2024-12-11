@@ -46,15 +46,12 @@ func TestDeserializeRequest(t *testing.T) {
 			DTPRequestBody: messages.DTPRequestBody{
 				Topics: messages.COMPACT_ARRAY[messages.DTPRequestTopic]{
 					{
-						Name: messages.COMPACT_STRING{
-							N:      []byte{4},
-							String: []byte{0x66, 0x6f, 0x6f},
-						},
+						Name: messages.COMPACT_STRING{0x66, 0x6f, 0x6f},
 					},
 				},
 				ResponsePartitionLimit: 0x4321,
 				Cursor: messages.DTPRequestCursor{
-					TopicName:      messages.COMPACT_STRING{N: []byte{0}, String: []byte{}},
+					TopicName:      messages.COMPACT_STRING{},
 					PartitionIndex: 0x21B2C12D,
 					TAG_BUFFER:     messages.TAG_BUFFER(0),
 				},

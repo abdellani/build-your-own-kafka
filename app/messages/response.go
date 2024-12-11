@@ -64,7 +64,7 @@ func Serialize(data any) []byte {
 	buff := bytes.Buffer{}
 	serializable, ok := data.(ISerializable)
 	primitive, ok2 := data.(IPrimitiveType)
-	if ok && ok2 && primitive.isPrimitiveType() {
+	if ok && ok2 && primitive.IsPrimitiveType() {
 		binary.Write(&buff, binary.BigEndian, serializable.Serialize())
 		return buff.Bytes()
 	}

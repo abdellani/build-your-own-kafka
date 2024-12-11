@@ -86,3 +86,14 @@ func TestCOMPACT_ARRAY(t *testing.T) {
 		}
 	})
 }
+
+func TestCOMPACT_STRING(t *testing.T) {
+	t.Run("Serialize", func(t *testing.T) {
+		data := messages.COMPACT_STRING{0x10, 0x11, 0x12, 0x13}
+		got := data.Serialize()
+		want := []byte{0x05, 0x10, 0x11, 0x12, 0x13}
+		if !reflect.DeepEqual(got, want) {
+			t.Errorf("COMPACT_STRING serialization error, got %v,want %v", got, want)
+		}
+	})
+}
