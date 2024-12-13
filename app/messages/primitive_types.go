@@ -12,6 +12,7 @@ type COMPACT_STRING []byte
 type NULLABLE_STRING []byte
 type COMPACT_NULLABLE_STRING []byte
 type UNSIGNED_VARINT []byte
+type SIGNED_VARINT []byte
 type NULLABLE_FIELD[T any] struct {
 	IsNull bool
 	Field  T
