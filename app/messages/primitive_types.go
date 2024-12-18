@@ -11,8 +11,8 @@ type COMPACT_ARRAY[T any] []T
 type COMPACT_STRING []byte
 type NULLABLE_STRING []byte
 type COMPACT_NULLABLE_STRING []byte
-type UNSIGNED_VARINT []byte
-type SIGNED_VARINT []byte
+type UNSIGNED_VARINT = uint64
+type SIGNED_VARINT = int64
 type NULLABLE_FIELD[T any] struct {
 	IsNull bool
 	Field  T

@@ -1,5 +1,7 @@
 package messages
 
+import "fmt"
+
 type DTPHandler struct {
 	SupportedVersions
 }
@@ -33,28 +35,99 @@ type Partition struct {
 	PartitionIndex         int32
 	LeaderId               int32
 	LeaderEpoch            int32
-	ReplicaNodes           int32
-	IsrNode                int32
-	EligibleLeaderReplicas int32
-	LastKnownElr           int32
-	OfflineReplicas        int32
+	ReplicaNodes           COMPACT_ARRAY[int32]
+	IsrNode                COMPACT_ARRAY[int32]
+	EligibleLeaderReplicas COMPACT_ARRAY[int32]
+	LastKnownElr           COMPACT_ARRAY[int32]
+	OfflineReplicas        COMPACT_ARRAY[int32]
 	TAG_BUFFER
 }
 
-func (h *DTPHandler) Handle(r IRequest) IResponse {
+const LogFilePath = "/tmp/kraft-combined-logs/__cluster_metadata-0/00000000000000000000.log"
 
+func (h *DTPHandler) Handle(r IRequest) IResponse {
 	req := r.(*DTPRequest)
-	//r.DTPRequestBody.Topics.Items[0]
 	res := h.NewReponse(req.CorrelationId)
-	topic := Topic{
-		ErrorCode: 3,
-		Name:      COMPACT_NULLABLE_STRING(req.Topics[0].Name),
-		TopicId:   [16]byte{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-	}
-	res.Topics = append(res.Topics, topic)
-	res.NextCursor = NULLABLE_FIELD[NextCursor]{IsNull: true}
+	res.ProcessRequestedTopics(req.Topics)
+	res.GenerateNuxtCursor()
 	res.Size = res.CalculateSize()
+	fmt.Printf("%+v\n", *res)
 	return res
+}
+
+func (res *DTPResponse) GenerateNuxtCursor() {
+	// for i := 0; i < len(res.Topics); i++ {
+	// 	topic := res.Topics[i]
+	// 	if topic.ErrorCode > 0 {
+	// 		continue
+	// 	}
+	// 	for j := 0; j < len(topic.Partitions); j++ {
+	// 		partition := topic.Partitions[j]
+	// 		if partition.ErrorCode > 0 {
+	// 			continue
+	// 		}
+	// 		res.NextCursor = NULLABLE_FIELD[NextCursor]{
+	// 			IsNull: false,
+	// 			Field: NextCursor{
+	// 				TopicName:      COMPACT_STRING(topic.Name),
+	// 				PartitionIndex: partition.PartitionIndex,
+	// 			},
+	// 		}
+	// 		return
+	// 	}
+	// }
+	res.NextCursor = NULLABLE_FIELD[NextCursor]{IsNull: true}
+}
+
+func (res *DTPResponse) ProcessRequestedTopics(requestedTopics COMPACT_ARRAY[DTPRequestTopic]) {
+	topics := []Topic{}
+	clusterMetada := LoadClusterMetaData(LogFilePath)
+
+	for i := 0; i < len(requestedTopics); i++ {
+		requestedTopic := requestedTopics[i]
+		uuid, found := clusterMetada.GetTopicUUID(requestedTopic.Name)
+		if !found {
+			answer := Topic{
+				ErrorCode: 3,
+				Name:      COMPACT_NULLABLE_STRING(requestedTopic.Name),
+				TopicId:   uuid,
+			}
+			topics = append(topics, answer)
+			continue
+		}
+		partitionRecord, found := clusterMetada.GetPartitionRecord(uuid)
+		if !found {
+			answer := Topic{
+				ErrorCode: 3,
+				Name:      COMPACT_NULLABLE_STRING(requestedTopic.Name),
+				TopicId:   uuid,
+			}
+			topics = append(topics, answer)
+			continue
+		}
+		answer := Topic{
+			ErrorCode: 0,
+			Name:      COMPACT_NULLABLE_STRING(requestedTopic.Name),
+			TopicId:   uuid,
+			Partitions: COMPACT_ARRAY[Partition]{
+				Partition{
+					ErrorCode:      0,
+					PartitionIndex: partitionRecord.PartitionID,
+				},
+			},
+		}
+		topics = append(topics, answer)
+	}
+	res.Topics = topics
+}
+
+func LoadClusterMetaData(path string) *ClusterMetadata {
+	decoder := &Decoder{}
+	cm := &ClusterMetadata{}
+	decoder.LoadBinaryFile(path)
+	cm.Init(decoder)
+	cm.Decoode()
+	return cm
 }
 
 func (h *DTPHandler) NewReponse(correlationId int32) *DTPResponse {
