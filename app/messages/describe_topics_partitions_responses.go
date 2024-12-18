@@ -131,7 +131,7 @@ func LoadClusterMetaData(path string) *ClusterMetadata {
 	cm := &ClusterMetadata{}
 	decoder.LoadBinaryFile(path)
 	cm.Init(decoder)
-	cm.Decoode()
+	cm.Decode()
 	return cm
 }
 

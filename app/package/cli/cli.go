@@ -1,8 +1,6 @@
 package main
 
 import (
-	"fmt"
-
 	"github.com/codecrafters-io/kafka-starter-go/app/messages"
 )
 
@@ -13,6 +11,5 @@ func main() {
 	cm := &messages.ClusterMetadata{}
 	decoder.LoadBinaryFile(path)
 	cm.Init(decoder)
-	cm.Decoode()
-	fmt.Printf("%+v\n", cm)
+	cm.Decode()
 }

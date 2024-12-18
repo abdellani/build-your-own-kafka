@@ -11,8 +11,8 @@ type COMPACT_ARRAY[T any] []T
 type COMPACT_STRING []byte
 type NULLABLE_STRING []byte
 type COMPACT_NULLABLE_STRING []byte
-type UNSIGNED_VARINT = uint64
-type SIGNED_VARINT = int64
+type UNSIGNED_VARINT uint64
+type SIGNED_VARINT int64
 type NULLABLE_FIELD[T any] struct {
 	IsNull bool
 	Field  T
@@ -94,6 +94,37 @@ func (c COMPACT_ARRAY[T]) Serialize() []byte {
 }
 
 func (C COMPACT_ARRAY[T]) IsPrimitiveType() bool { return true }
+
+func (c ARRAY[T]) Serialize() []byte {
+	buffer := bytes.Buffer{}
+	//TODO: use varint
+	n := int32(len(c))
+	binary.Write(&buffer, binary.BigEndian, n)
+	if len(c) == 0 {
+		return buffer.Bytes()
+	}
+	for i := 0; i < len(c); i++ {
+		item := c[i]
+		binary.Write(&buffer, binary.BigEndian, Serialize(item))
+	}
+	return buffer.Bytes()
+}
+
+func (C ARRAY[T]) IsPrimitiveType() bool { return true }
+
+func (i UNSIGNED_VARINT) IsPrimitiveType() bool { return true }
+func (i UNSIGNED_VARINT) Serialize() []byte {
+	buf := make([]byte, binary.MaxVarintLen64)
+	n := binary.PutUvarint(buf, uint64(i))
+	return buf[:n]
+}
+
+func (i SIGNED_VARINT) IsPrimitiveType() bool { return true }
+func (i SIGNED_VARINT) Serialize() []byte {
+	buf := make([]byte, binary.MaxVarintLen64)
+	n := binary.PutVarint(buf, int64(i))
+	return buf[:n]
+}
 
 type ISerializable interface {
 	Serialize() []byte

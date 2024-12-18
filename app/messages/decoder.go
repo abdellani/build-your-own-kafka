@@ -10,6 +10,10 @@ type Decoder struct {
 	offset int32
 }
 
+func (d *Decoder) GetRow(start, end int32) []byte {
+	return d.data[start:end]
+}
+
 func (d *Decoder) SetOffset(offset int32) {
 	d.offset = offset
 }
@@ -65,16 +69,16 @@ func (d *Decoder) GetBytes(n int32) ([]byte, error) {
 	return buffer, nil
 }
 
-func (d *Decoder) GetVarint() (int64, error) {
+func (d *Decoder) GetVarint() (SIGNED_VARINT, error) {
 	num, n := binary.Varint(d.data[d.offset:])
 	d.offset += int32(n)
-	return num, nil
+	return SIGNED_VARINT(num), nil
 }
 
-func (d *Decoder) GetUvarint() (uint64, error) {
+func (d *Decoder) GetUvarint() (UNSIGNED_VARINT, error) {
 	num, n := binary.Uvarint(d.data[d.offset:])
 	d.offset += int32(n)
-	return num, nil
+	return UNSIGNED_VARINT(num), nil
 }
 
 func (d *Decoder) GetCompactString() (COMPACT_STRING, error) {

@@ -1,5 +1,11 @@
 package messages
 
+import (
+	"fmt"
+	"os"
+	"strings"
+)
+
 type FetchResponse struct {
 	Size int32
 	ResponseHeaderV1
@@ -23,7 +29,7 @@ type FetchResponsePartition struct {
 	LogStartOffset       int64
 	AbortedTransactions  COMPACT_ARRAY[FectchResponseAbortedTransaction]
 	PreferredReadReplica int32
-	Records              COMPACT_ARRAY[int32]
+	Records              COMPACT_ARRAY[[]byte]
 	TAG_BUFFER
 }
 
@@ -37,21 +43,29 @@ type FetchHandler struct{}
 func (h *FetchHandler) Handle(r IRequest) IResponse {
 
 	req := r.(*FetchRequest)
+	cm := LoadClusterMetaData(LogFilePath)
 	res := FetchResponse{
 		Reponses: COMPACT_ARRAY[FetchResponseReponse]{},
 	}
-	clusterMetada := LoadClusterMetaData(LogFilePath)
 	for i := 0; i < len(req.Topics); i++ {
 		topic := req.Topics[i]
-		_, found := clusterMetada.GetPartitionRecords(topic.TopicID)
-
-		ErrorCode := int16(100)
-		if found {
-			ErrorCode = 0
-		}
+		partitionIndex := req.Topics[i].Partitions[0].Partition
+		topicName := cm.FindTopicName(topic.TopicID)
 		partition := FetchResponsePartition{
 			PartitionIndex: 0,
-			ErrorCode:      ErrorCode,
+			ErrorCode:      100,
+		}
+		if strings.Compare(topicName, "") != 0 {
+			logFilePath := fmt.Sprintf("/tmp/kraft-combined-logs/%s-%d/00000000000000000000.log", topicName, partitionIndex)
+			_, err := os.Stat(logFilePath)
+			if err != nil {
+				fmt.Println(err)
+				os.Exit(1)
+				return nil
+			}
+			partition.ErrorCode = 0
+			data, err := os.ReadFile(logFilePath)
+			partition.Records = append(partition.Records, data)
 		}
 		response := FetchResponseReponse{
 			Topic:      topic.TopicID,

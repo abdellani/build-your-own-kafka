@@ -74,7 +74,7 @@ func Serialize(data any) []byte {
 	kind := dataType.Kind()
 	switch kind {
 	// byte is an alias of Uint8
-	case reflect.Int64, reflect.Int32, reflect.Int16, reflect.Int8, reflect.Uint8:
+	case reflect.Int64, reflect.Uint64, reflect.Int32, reflect.Int16, reflect.Int8, reflect.Uint8:
 		err := binary.Write(&buff, binary.BigEndian, data)
 		if err != nil {
 			panic(err)
