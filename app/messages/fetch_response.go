@@ -40,11 +40,18 @@ func (h *FetchHandler) Handle(r IRequest) IResponse {
 	res := FetchResponse{
 		Reponses: COMPACT_ARRAY[FetchResponseReponse]{},
 	}
+	clusterMetada := LoadClusterMetaData(LogFilePath)
 	for i := 0; i < len(req.Topics); i++ {
 		topic := req.Topics[i]
+		_, found := clusterMetada.GetPartitionRecords(topic.TopicID)
+
+		ErrorCode := int16(100)
+		if found {
+			ErrorCode = 0
+		}
 		partition := FetchResponsePartition{
 			PartitionIndex: 0,
-			ErrorCode:      100,
+			ErrorCode:      ErrorCode,
 		}
 		response := FetchResponseReponse{
 			Topic:      topic.TopicID,
