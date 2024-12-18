@@ -34,8 +34,12 @@ func (h *ApiVersionsHandler) Handle(req IRequest) IResponse {
 func NewApiVersionsResponse(correlationId int32, err int16) *ApiVersionsResponse {
 	response := ApiVersionsResponse{
 		Error:      err,
-		NumApiKeys: 3,
+		NumApiKeys: 4,
 		ApiKeys: []ApiKeys{
+			{ApiKey: API_KEY_FETCH,
+				MinVersion: 0,
+				MaxVersion: 16,
+			},
 			{ApiKey: API_KEY_API_VERSIONS,
 				MinVersion: 0,
 				MaxVersion: 4},
