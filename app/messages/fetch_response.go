@@ -37,8 +37,21 @@ type FetchHandler struct{}
 func (h *FetchHandler) Handle(r IRequest) IResponse {
 
 	req := r.(*FetchRequest)
-
-	res := FetchResponse{}
+	res := FetchResponse{
+		Reponses: COMPACT_ARRAY[FetchResponseReponse]{},
+	}
+	for i := 0; i < len(req.Topics); i++ {
+		topic := req.Topics[i]
+		partition := FetchResponsePartition{
+			PartitionIndex: 0,
+			ErrorCode:      100,
+		}
+		response := FetchResponseReponse{
+			Topic:      topic.TopicID,
+			Partitions: COMPACT_ARRAY[FetchResponsePartition]{partition},
+		}
+		res.Reponses = append(res.Reponses, response)
+	}
 	res.PrepareResponse(req)
 
 	return res
