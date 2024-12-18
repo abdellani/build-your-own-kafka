@@ -32,7 +32,7 @@ type IResponse interface {
 func HandleRequest(req IRequest) IResponse {
 	var handler Handler
 	switch req.ApiKeyValue() {
-	case API_KEY_API_VERSIONS, API_KEY_DESCRIBE_TOPIC_PARTITIONS:
+	case API_KEY_API_VERSIONS, API_KEY_DESCRIBE_TOPIC_PARTITIONS, API_KEY_FETCH:
 		handler = Handlers[req.ApiKeyValue()]
 	default:
 		handler = Handlers[API_KEY_API_VERSIONS]
@@ -54,6 +54,7 @@ var Handlers = map[int16]Handler{
 			MaxVersion: 0,
 		},
 	},
+	API_KEY_FETCH: &FetchHandler{},
 }
 
 func CalculateSize(data ISerializable) int32 {

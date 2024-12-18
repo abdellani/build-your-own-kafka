@@ -30,7 +30,7 @@ func TestDeserializeRequest(t *testing.T) {
 			0x00, //TAG Buffer
 		}
 
-		got := messages.DeserializeRequest(data)
+		got := messages.DecodeRequest(data)
 
 		want := &messages.DTPRequest{
 			Size: 37,

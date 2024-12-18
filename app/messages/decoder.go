@@ -10,6 +10,10 @@ type Decoder struct {
 	offset int32
 }
 
+func (d *Decoder) SetOffset(offset int32) {
+	d.offset = offset
+}
+
 func (d *Decoder) LoadBinaryFile(path string) {
 	content, err := os.ReadFile(path)
 	if err != nil {

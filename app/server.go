@@ -39,7 +39,7 @@ func handleConnection(c net.Conn) {
 	buff := make([]byte, 1024)
 	c.Read(buff)
 	received.Write(buff)
-	request := messages.DeserializeRequest(received.Bytes())
+	request := messages.DecodeRequest(received.Bytes())
 	response := messages.HandleRequest(request)
 	c.Write(response.Serialize())
 }

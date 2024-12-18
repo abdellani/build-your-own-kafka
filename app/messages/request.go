@@ -9,7 +9,7 @@ func (r *RequestHeaderV2) IsSupportedVersion(min, max int16) bool {
 		r.ApiVersion <= max
 }
 
-func DeserializeRequest(bytes []byte) IRequest {
+func DecodeRequest(bytes []byte) IRequest {
 	offset := 0
 	var size int32
 	buffer := bytes[offset : offset+4]
@@ -30,6 +30,16 @@ func DeserializeRequest(bytes []byte) IRequest {
 			Size:            size,
 			RequestHeaderV2: *headerV2,
 			DTPRequestBody:  *DTPBody,
+		}
+	case API_KEY_FETCH:
+		decoder := &Decoder{}
+		decoder.Init(bytes)
+		decoder.SetOffset(int32(offset))
+		FetchBody, _ := DecodeFetchRequestBody(decoder)
+		return &FetchRequest{
+			Size:             size,
+			RequestHeaderV2:  *headerV2,
+			FetchRequestBody: *FetchBody,
 		}
 	default:
 		panic("Inde")
