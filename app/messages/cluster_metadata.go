@@ -232,8 +232,9 @@ func (cm *ClusterMetadata) GetTopicUUID(topicName COMPACT_STRING) (UUID, bool) {
 	return UUID{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, false
 }
 
-func (cm *ClusterMetadata) GetPartitionRecord(uuid UUID) (*ValuePartitionRecord, bool) {
+func (cm *ClusterMetadata) GetPartitionRecords(uuid UUID) (*[]ValuePartitionRecord, bool) {
 	values := cm.GetValues()
+	records := []ValuePartitionRecord{}
 	for i := 0; i < len(values); i++ {
 		value := values[i]
 		if !value.isPartitionRecord() {
@@ -246,7 +247,7 @@ func (cm *ClusterMetadata) GetPartitionRecord(uuid UUID) (*ValuePartitionRecord,
 		if !reflect.DeepEqual(uuid, partitionRecord.TopicUUID) {
 			continue
 		}
-		return &partitionRecord, true
+		records = append(records, partitionRecord)
 	}
-	return nil, false
+	return &records, len(records) > 0
 }

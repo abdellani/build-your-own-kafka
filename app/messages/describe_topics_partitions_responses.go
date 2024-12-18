@@ -95,7 +95,7 @@ func (res *DTPResponse) ProcessRequestedTopics(requestedTopics COMPACT_ARRAY[DTP
 			topics = append(topics, answer)
 			continue
 		}
-		partitionRecord, found := clusterMetada.GetPartitionRecord(uuid)
+		partitionRecord, found := clusterMetada.GetPartitionRecords(uuid)
 		if !found {
 			answer := Topic{
 				ErrorCode: 3,
@@ -105,18 +105,23 @@ func (res *DTPResponse) ProcessRequestedTopics(requestedTopics COMPACT_ARRAY[DTP
 			topics = append(topics, answer)
 			continue
 		}
-		answer := Topic{
-			ErrorCode: 0,
-			Name:      COMPACT_NULLABLE_STRING(requestedTopic.Name),
-			TopicId:   uuid,
-			Partitions: COMPACT_ARRAY[Partition]{
-				Partition{
-					ErrorCode:      0,
-					PartitionIndex: partitionRecord.PartitionID,
-				},
-			},
+
+		topic := Topic{
+			ErrorCode:  0,
+			Name:       COMPACT_NULLABLE_STRING(requestedTopic.Name),
+			TopicId:    uuid,
+			Partitions: COMPACT_ARRAY[Partition]{},
 		}
-		topics = append(topics, answer)
+		for j := 0; j < len(*partitionRecord); j++ {
+			record := (*partitionRecord)[j]
+			partition := Partition{
+				ErrorCode:      0,
+				PartitionIndex: record.PartitionID,
+			}
+			topic.Partitions = append(topic.Partitions, partition)
+
+		}
+		topics = append(topics, topic)
 	}
 	res.Topics = topics
 }
