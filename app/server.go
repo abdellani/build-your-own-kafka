@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"fmt"
+	"io"
 	"net"
 	"os"
 
@@ -35,11 +36,16 @@ func main() {
 
 func handleConnection(c net.Conn) {
 	defer c.Close()
-	received := bytes.Buffer{}
-	buff := make([]byte, 1024)
-	c.Read(buff)
-	received.Write(buff)
-	request := messages.DecodeRequest(received.Bytes())
-	response := messages.HandleRequest(request)
-	c.Write(response.Serialize())
+	for {
+		received := bytes.Buffer{}
+		buff := make([]byte, 1024)
+		_, err := c.Read(buff)
+		if err != nil && err == io.EOF {
+			break
+		}
+		received.Write(buff)
+		request := messages.DecodeRequest(received.Bytes())
+		response := messages.HandleRequest(request)
+		c.Write(response.Serialize())
+	}
 }
