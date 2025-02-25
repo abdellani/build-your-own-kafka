@@ -1,8 +1,10 @@
-package messages
+package types
 
 import (
 	"bytes"
 	"encoding/binary"
+	"fmt"
+	"reflect"
 )
 
 type UUID [16]byte
@@ -17,6 +19,7 @@ type NULLABLE_FIELD[T any] struct {
 	IsNull bool
 	Field  T
 }
+type TAG_BUFFER int8
 
 func DeserializeNullableString(bytes []byte, offset int) (*NULLABLE_STRING, int) {
 	s := NULLABLE_STRING{}
@@ -188,4 +191,43 @@ func DeserializeRequestHeaderV2(bytes []byte, offset int) (*RequestHeaderV2, int
 	offset += 1
 
 	return req, offset
+}
+func Serialize(data any) []byte {
+	buff := bytes.Buffer{}
+	serializable, ok := data.(ISerializable)
+	primitive, ok2 := data.(IPrimitiveType)
+	if ok && ok2 && primitive.IsPrimitiveType() {
+		binary.Write(&buff, binary.BigEndian, serializable.Serialize())
+		return buff.Bytes()
+	}
+	dataType := reflect.TypeOf(data)
+	kind := dataType.Kind()
+	switch kind {
+	// byte is an alias of Uint8
+	case reflect.Int64, reflect.Uint64, reflect.Int32, reflect.Int16, reflect.Int8, reflect.Uint8:
+		err := binary.Write(&buff, binary.BigEndian, data)
+		if err != nil {
+			panic(err)
+		}
+	case reflect.Struct:
+		value := reflect.ValueOf(data)
+		for i := 0; i < value.NumField(); i++ {
+			binary.Write(&buff, binary.BigEndian, Serialize(value.Field(i).Interface()))
+		}
+	case reflect.Slice, reflect.Array:
+		value := reflect.ValueOf(data)
+		for i := 0; i < value.Len(); i++ {
+			binary.Write(&buff, binary.BigEndian, Serialize(value.Index(i).Interface()))
+		}
+	case reflect.Int:
+		panic("Should not use int type, because the system change depending on the architecture")
+	default:
+		panic(fmt.Sprintf("Kind not support in serialization, %v", kind))
+	}
+	return buff.Bytes()
+}
+
+func (r *RequestHeaderV2) IsSupportedVersion(min, max int16) bool {
+	return min <= r.ApiVersion &&
+		r.ApiVersion <= max
 }

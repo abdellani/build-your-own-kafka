@@ -7,7 +7,8 @@ import (
 	"net"
 	"os"
 
-	"github.com/codecrafters-io/kafka-starter-go/app/messages"
+	"github.com/abdellani/build-your-own-kafka/app/handler"
+	"github.com/abdellani/build-your-own-kafka/app/request_decoder"
 )
 
 // Ensures gofmt doesn't remove the "net" and "os" imports in stage 1 (feel free to remove this!)
@@ -44,8 +45,8 @@ func handleConnection(c net.Conn) {
 			break
 		}
 		received.Write(buff)
-		request := messages.DecodeRequest(received.Bytes())
-		response := messages.HandleRequest(request)
+		request := request_decoder.DecodeRequest(received.Bytes())
+		response := handler.HandleRequest(request)
 		c.Write(response.Serialize())
 	}
 }

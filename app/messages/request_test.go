@@ -4,7 +4,9 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/codecrafters-io/kafka-starter-go/app/messages"
+	"github.com/abdellani/build-your-own-kafka/app/dtp"
+	"github.com/abdellani/build-your-own-kafka/app/request_decoder"
+	"github.com/abdellani/build-your-own-kafka/app/types"
 )
 
 func TestDeserializeRequest(t *testing.T) {
@@ -30,27 +32,27 @@ func TestDeserializeRequest(t *testing.T) {
 			0x00, //TAG Buffer
 		}
 
-		got := messages.DecodeRequest(data)
+		got := request_decoder.DecodeRequest(data)
 
-		want := &messages.DTPRequest{
+		want := &dtp.DTPRequest{
 			Size: 37,
-			RequestHeaderV2: messages.RequestHeaderV2{
+			RequestHeaderV2: types.RequestHeaderV2{
 				ApiKey:        75,
 				ApiVersion:    0,
 				CorrelationId: 0x270A52D0,
-				ClientId:      messages.NULLABLE_STRING{0x6b, 0x61, 0x66, 0x6b, 0x61, 0x2d, 0x63, 0x6c, 0x69},
+				ClientId:      types.NULLABLE_STRING{0x6b, 0x61, 0x66, 0x6b, 0x61, 0x2d, 0x63, 0x6c, 0x69},
 			},
-			DTPRequestBody: messages.DTPRequestBody{
-				Topics: messages.COMPACT_ARRAY[messages.DTPRequestTopic]{
+			DTPRequestBody: dtp.DTPRequestBody{
+				Topics: types.COMPACT_ARRAY[dtp.DTPRequestTopic]{
 					{
-						Name: messages.COMPACT_STRING{0x66, 0x6f, 0x6f},
+						Name: types.COMPACT_STRING{0x66, 0x6f, 0x6f},
 					},
 				},
 				ResponsePartitionLimit: 0x4321,
-				Cursor: messages.DTPRequestCursor{
-					TopicName:      messages.COMPACT_STRING{},
+				Cursor: dtp.DTPRequestCursor{
+					TopicName:      types.COMPACT_STRING{},
 					PartitionIndex: 0x21B2C12D,
-					TAG_BUFFER:     messages.TAG_BUFFER(0),
+					TAG_BUFFER:     types.TAG_BUFFER(0),
 				},
 			},
 		}

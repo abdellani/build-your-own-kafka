@@ -1,29 +1,31 @@
-package messages
+package dtp
 
 import (
 	"encoding/binary"
+
+	"github.com/abdellani/build-your-own-kafka/app/types"
 )
 
 type DTPRequest struct {
 	Size int32
-	RequestHeaderV2
+	types.RequestHeaderV2
 	DTPRequestBody
 }
 
 type DTPRequestBody struct {
-	Topics                 COMPACT_ARRAY[DTPRequestTopic]
+	Topics                 types.COMPACT_ARRAY[DTPRequestTopic]
 	ResponsePartitionLimit int32
 	Cursor                 DTPRequestCursor
-	TAG_BUFFER
+	types.TAG_BUFFER
 }
 type DTPRequestTopic struct {
-	Name COMPACT_STRING
-	TAG_BUFFER
+	Name types.COMPACT_STRING
+	types.TAG_BUFFER
 }
 type DTPRequestCursor struct {
-	TopicName      COMPACT_STRING
+	TopicName      types.COMPACT_STRING
 	PartitionIndex int32
-	TAG_BUFFER
+	types.TAG_BUFFER
 }
 
 func DeserializeDTPBody(data []byte, offset int) (*DTPRequestBody, int) {
@@ -48,7 +50,7 @@ func DeserializeDTPBody(data []byte, offset int) (*DTPRequestBody, int) {
 		item.Name = buffer
 		buffer = data[offset : offset+1]
 		offset += 1
-		item.TAG_BUFFER = TAG_BUFFER(buffer[0])
+		item.TAG_BUFFER = types.TAG_BUFFER(buffer[0])
 		body.Topics = append(body.Topics, item)
 	}
 	buffer = data[offset : offset+4]
@@ -67,10 +69,10 @@ func DeserializeDTPBody(data []byte, offset int) (*DTPRequestBody, int) {
 	body.Cursor.PartitionIndex = int32(binary.BigEndian.Uint32(buffer))
 	buffer = data[offset : offset+1]
 	offset += 1
-	body.Cursor.TAG_BUFFER = TAG_BUFFER(buffer[0])
+	body.Cursor.TAG_BUFFER = types.TAG_BUFFER(buffer[0])
 	buffer = data[offset : offset+1]
 	offset += 1
-	body.TAG_BUFFER = TAG_BUFFER(buffer[0])
+	body.TAG_BUFFER = types.TAG_BUFFER(buffer[0])
 
 	return body, offset
 }

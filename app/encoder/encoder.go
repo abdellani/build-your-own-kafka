@@ -1,8 +1,10 @@
-package messages
+package encoder
 
 import (
 	"bytes"
 	"encoding/binary"
+
+	"github.com/abdellani/build-your-own-kafka/app/types"
 )
 
 type Encoder struct {
@@ -48,12 +50,12 @@ func (e *Encoder) PutByte(i byte) {
 	e.offset += 1
 }
 
-func (e *Encoder) PutVarint(i SIGNED_VARINT) {
+func (e *Encoder) PutVarint(i types.SIGNED_VARINT) {
 	b := i.Serialize()
 	binary.Write(&e.buffer, binary.BigEndian, b)
 	e.offset += int32(len(b))
 }
-func (e *Encoder) PutUvarint(i UNSIGNED_VARINT) {
+func (e *Encoder) PutUvarint(i types.UNSIGNED_VARINT) {
 	b := i.Serialize()
 	binary.Write(&e.buffer, binary.BigEndian, b)
 	e.offset += int32(len(b))

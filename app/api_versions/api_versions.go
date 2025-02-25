@@ -1,29 +1,33 @@
-package messages
+package api_versions
+
+import (
+	"github.com/abdellani/build-your-own-kafka/app/messages"
+	"github.com/abdellani/build-your-own-kafka/app/types"
+	"github.com/abdellani/build-your-own-kafka/app/utils"
+)
 
 type ApiVersionsResponse struct {
 	Size int32
-	ResponseHeaderV0
+	types.ResponseHeaderV0
 	Error          int16
 	NumApiKeys     int8
 	ApiKeys        []ApiKeys
 	ThrottleTimeMs int32
-	TAG_BUFFER
+	types.TAG_BUFFER
 }
 
 type ApiKeys struct {
 	ApiKey     int16
 	MinVersion int16
 	MaxVersion int16
-	TAG_BUFFER
+	types.TAG_BUFFER
 }
 
 type ApiVersionsHandler struct {
-	SupportedVersions
+	messages.SupportedVersions
 }
 
-type TAG_BUFFER int8
-
-func (h *ApiVersionsHandler) Handle(req IRequest) IResponse {
+func (h *ApiVersionsHandler) Handle(req types.IRequest) types.IResponse {
 	r := req.(*APIVersionsRequest)
 	if !r.IsSupportedVersion(int16(h.MinVersion), h.MaxVersion) {
 		return NewApiVersionsResponse(r.CorrelationId, 35)
@@ -36,14 +40,14 @@ func NewApiVersionsResponse(correlationId int32, err int16) *ApiVersionsResponse
 		Error:      err,
 		NumApiKeys: 4,
 		ApiKeys: []ApiKeys{
-			{ApiKey: API_KEY_FETCH,
+			{ApiKey: messages.API_KEY_FETCH,
 				MinVersion: 0,
 				MaxVersion: 16,
 			},
-			{ApiKey: API_KEY_API_VERSIONS,
+			{ApiKey: messages.API_KEY_API_VERSIONS,
 				MinVersion: 0,
 				MaxVersion: 4},
-			{ApiKey: API_KEY_DESCRIBE_TOPIC_PARTITIONS,
+			{ApiKey: messages.API_KEY_DESCRIBE_TOPIC_PARTITIONS,
 				MinVersion: 0,
 				MaxVersion: 0},
 		},
@@ -55,9 +59,9 @@ func NewApiVersionsResponse(correlationId int32, err int16) *ApiVersionsResponse
 }
 
 func (r *ApiVersionsResponse) CalculateSize() int32 {
-	return CalculateSize(*r) - 4
+	return utils.CalculateSize(*r) - 4
 }
 
 func (r ApiVersionsResponse) Serialize() []byte {
-	return Serialize(r)
+	return types.Serialize(r)
 }

@@ -1,8 +1,10 @@
-package messages
+package decoder
 
 import (
 	"encoding/binary"
 	"os"
+
+	"github.com/abdellani/build-your-own-kafka/app/types"
 )
 
 type Decoder struct {
@@ -69,19 +71,19 @@ func (d *Decoder) GetBytes(n int32) ([]byte, error) {
 	return buffer, nil
 }
 
-func (d *Decoder) GetVarint() (SIGNED_VARINT, error) {
+func (d *Decoder) GetVarint() (types.SIGNED_VARINT, error) {
 	num, n := binary.Varint(d.data[d.offset:])
 	d.offset += int32(n)
-	return SIGNED_VARINT(num), nil
+	return types.SIGNED_VARINT(num), nil
 }
 
-func (d *Decoder) GetUvarint() (UNSIGNED_VARINT, error) {
+func (d *Decoder) GetUvarint() (types.UNSIGNED_VARINT, error) {
 	num, n := binary.Uvarint(d.data[d.offset:])
 	d.offset += int32(n)
-	return UNSIGNED_VARINT(num), nil
+	return types.UNSIGNED_VARINT(num), nil
 }
 
-func (d *Decoder) GetCompactString() (COMPACT_STRING, error) {
+func (d *Decoder) GetCompactString() (types.COMPACT_STRING, error) {
 	l, _ := d.GetUvarint()
 	//TODO handle the case when Uvarint is longer than 1 byte
 	if l < 2 {
@@ -91,10 +93,10 @@ func (d *Decoder) GetCompactString() (COMPACT_STRING, error) {
 	return d.GetBytes(int32(l - 1))
 }
 
-func (d *Decoder) GetUUID() (UUID, error) {
+func (d *Decoder) GetUUID() (types.UUID, error) {
 	tmp := d.data[d.offset : d.offset+16]
 	d.offset += 16
-	return UUID(tmp), nil
+	return types.UUID(tmp), nil
 }
 func (d *Decoder) Advance(steps int32) {
 	d.offset += steps
@@ -108,9 +110,9 @@ func (d Decoder) Remaining() int32 {
 	return int32(len(d.data)) - int32(d.offset)
 }
 
-func (d *Decoder) GetCompactArrayInt32() (COMPACT_ARRAY[int32], error) {
+func (d *Decoder) GetCompactArrayInt32() (types.COMPACT_ARRAY[int32], error) {
 	length, _ := d.GetUvarint()
-	result := COMPACT_ARRAY[int32]{}
+	result := types.COMPACT_ARRAY[int32]{}
 	if length < 1 {
 		return result, nil
 	}
@@ -121,9 +123,9 @@ func (d *Decoder) GetCompactArrayInt32() (COMPACT_ARRAY[int32], error) {
 	return result, nil
 }
 
-func (d *Decoder) GetCompactArrayUUID() (COMPACT_ARRAY[UUID], error) {
+func (d *Decoder) GetCompactArrayUUID() (types.COMPACT_ARRAY[types.UUID], error) {
 	length, _ := d.GetUvarint()
-	result := COMPACT_ARRAY[UUID]{}
+	result := types.COMPACT_ARRAY[types.UUID]{}
 	if length < 1 {
 		return result, nil
 	}

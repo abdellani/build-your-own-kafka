@@ -1,10 +1,10 @@
-package messages_test
+package types_test
 
 import (
 	"reflect"
 	"testing"
 
-	"github.com/codecrafters-io/kafka-starter-go/app/messages"
+	"github.com/abdellani/build-your-own-kafka/app/types"
 )
 
 func TestDeserializeRequestHeaderV2(t *testing.T) {
@@ -22,13 +22,13 @@ func TestDeserializeRequestHeaderV2(t *testing.T) {
 		0x00, //TAG_BUFFER (byte)
 	}
 	payload := append(RequestCommonField, RequestHeaderV2Example...)
-	got, got_offset := messages.DeserializeRequestHeaderV2(payload, 4)
+	got, got_offset := types.DeserializeRequestHeaderV2(payload, 4)
 	want_offset := 24
-	want := &messages.RequestHeaderV2{
+	want := &types.RequestHeaderV2{
 		ApiKey:        75,
 		ApiVersion:    4,
 		CorrelationId: 0x24354657,
-		ClientId:      messages.NULLABLE_STRING{0x6b, 0x61, 0x66, 0x6b, 0x61, 0x2d, 0x63, 0x6c, 0x69},
+		ClientId:      types.NULLABLE_STRING{0x6b, 0x61, 0x66, 0x6b, 0x61, 0x2d, 0x63, 0x6c, 0x69},
 		TAG_BUFFER:    0,
 	}
 	if got_offset != want_offset {
@@ -41,7 +41,7 @@ func TestDeserializeRequestHeaderV2(t *testing.T) {
 
 func TestCOMPACT_ARRAY(t *testing.T) {
 	t.Run("Serialize an array of int16", func(t *testing.T) {
-		data := messages.COMPACT_ARRAY[int16]{
+		data := types.COMPACT_ARRAY[int16]{
 			1, 2, 3, 4, 5,
 		}
 		got := data.Serialize()
@@ -52,7 +52,7 @@ func TestCOMPACT_ARRAY(t *testing.T) {
 	})
 
 	t.Run("Serialize an array of []int16", func(t *testing.T) {
-		data := messages.COMPACT_ARRAY[[]int16]{
+		data := types.COMPACT_ARRAY[[]int16]{
 			[]int16{1, 2, 3, 10, 11, 12},
 		}
 		got := data.Serialize()
@@ -63,14 +63,14 @@ func TestCOMPACT_ARRAY(t *testing.T) {
 	})
 
 	t.Run("serialize a COMPACT_ARRAY[struct]", func(t *testing.T) {
-		data := messages.COMPACT_ARRAY[struct {
+		data := types.COMPACT_ARRAY[struct {
 			ID             []byte
 			ThrottleTimeMs int16
 		}]{
 			{ID: []byte{0x49, 0x50, 0x51}, ThrottleTimeMs: 30},
 			{ID: []byte{0x25, 0x98, 0x10}, ThrottleTimeMs: 15},
 		}
-		got := messages.Serialize(data)
+		got := types.Serialize(data)
 		want := []byte{
 			0x3,
 			0x49, 0x50, 0x51,
@@ -86,7 +86,7 @@ func TestCOMPACT_ARRAY(t *testing.T) {
 
 func TestCOMPACT_STRING(t *testing.T) {
 	t.Run("Serialize", func(t *testing.T) {
-		data := messages.COMPACT_STRING{0x10, 0x11, 0x12, 0x13}
+		data := types.COMPACT_STRING{0x10, 0x11, 0x12, 0x13}
 		got := data.Serialize()
 		want := []byte{0x05, 0x10, 0x11, 0x12, 0x13}
 		if !reflect.DeepEqual(got, want) {
@@ -97,7 +97,7 @@ func TestCOMPACT_STRING(t *testing.T) {
 
 func TestNULLABLE_STRING(t *testing.T) {
 	t.Run("NULL Serialize", func(t *testing.T) {
-		data := messages.NULLABLE_STRING{}
+		data := types.NULLABLE_STRING{}
 		got := data.Serialize()
 		want := []byte{0xFF, 0xff}
 		if !reflect.DeepEqual(got, want) {
@@ -105,7 +105,7 @@ func TestNULLABLE_STRING(t *testing.T) {
 		}
 	})
 	t.Run("NON-EMPTY Serialize", func(t *testing.T) {
-		data := messages.NULLABLE_STRING{0x61, 0x62, 0x63}
+		data := types.NULLABLE_STRING{0x61, 0x62, 0x63}
 		got := data.Serialize()
 		want := []byte{0x0, 0x3, 0x61, 0x62, 0x63}
 		if !reflect.DeepEqual(got, want) {

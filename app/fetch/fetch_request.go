@@ -1,8 +1,13 @@
-package messages
+package fetch
+
+import (
+	"github.com/abdellani/build-your-own-kafka/app/decoder"
+	"github.com/abdellani/build-your-own-kafka/app/types"
+)
 
 type FetchRequest struct {
 	Size int32
-	RequestHeaderV2
+	types.RequestHeaderV2
 	FetchRequestBody
 }
 
@@ -13,15 +18,15 @@ type FetchRequestBody struct {
 	IsolationLevel      int8
 	SessionID           int32
 	SessionEpoch        int32
-	Topics              COMPACT_ARRAY[FetchRequestTopic]
-	ForgottenTopicsData COMPACT_ARRAY[FetchRequestForgottenTopicData]
-	RackId              COMPACT_STRING
-	TAG_BUFFER
+	Topics              types.COMPACT_ARRAY[FetchRequestTopic]
+	ForgottenTopicsData types.COMPACT_ARRAY[FetchRequestForgottenTopicData]
+	RackId              types.COMPACT_STRING
+	types.TAG_BUFFER
 }
 type FetchRequestTopic struct {
-	TopicID    UUID
-	Partitions COMPACT_ARRAY[FetchRequestPartition]
-	TAG_BUFFER
+	TopicID    types.UUID
+	Partitions types.COMPACT_ARRAY[FetchRequestPartition]
+	types.TAG_BUFFER
 }
 
 type FetchRequestPartition struct {
@@ -31,16 +36,16 @@ type FetchRequestPartition struct {
 	LastFetchedEpoch   int32
 	LogStartOffset     int64
 	PartitionMaxBytes  int32
-	TAG_BUFFER
+	types.TAG_BUFFER
 }
 
 type FetchRequestForgottenTopicData struct {
-	TopicID    UUID
-	Partitions COMPACT_ARRAY[int32]
-	TAG_BUFFER
+	TopicID    types.UUID
+	Partitions types.COMPACT_ARRAY[int32]
+	types.TAG_BUFFER
 }
 
-func DecodeFetchRequestBody(d *Decoder) (*FetchRequestBody, bool) {
+func DecodeFetchRequestBody(d *decoder.Decoder) (*FetchRequestBody, bool) {
 	req := &FetchRequestBody{}
 	req.MaxWaitMs, _ = d.GetInt32()
 	req.MinBytes, _ = d.GetInt32()
@@ -52,9 +57,9 @@ func DecodeFetchRequestBody(d *Decoder) (*FetchRequestBody, bool) {
 	req.Topics = *topics
 	return req, false
 }
-func DecodeFetchRequestTopics(d *Decoder) (*COMPACT_ARRAY[FetchRequestTopic], error) {
+func DecodeFetchRequestTopics(d *decoder.Decoder) (*types.COMPACT_ARRAY[FetchRequestTopic], error) {
 	length, _ := d.GetUvarint()
-	result := COMPACT_ARRAY[FetchRequestTopic]{}
+	result := types.COMPACT_ARRAY[FetchRequestTopic]{}
 	if length < 2 {
 		return &result, nil
 	}
@@ -68,8 +73,8 @@ func DecodeFetchRequestTopics(d *Decoder) (*COMPACT_ARRAY[FetchRequestTopic], er
 	}
 	return &result, nil
 }
-func DecodeFetchRequestPartition(d *Decoder) (*COMPACT_ARRAY[FetchRequestPartition], error) {
-	partitions := COMPACT_ARRAY[FetchRequestPartition]{}
+func DecodeFetchRequestPartition(d *decoder.Decoder) (*types.COMPACT_ARRAY[FetchRequestPartition], error) {
+	partitions := types.COMPACT_ARRAY[FetchRequestPartition]{}
 	length, _ := d.GetUvarint()
 	for i := 1; i < int(length); i++ {
 		partition := FetchRequestPartition{}
@@ -80,7 +85,7 @@ func DecodeFetchRequestPartition(d *Decoder) (*COMPACT_ARRAY[FetchRequestPartiti
 		partition.LogStartOffset, _ = d.GetInt64()
 		partition.PartitionMaxBytes, _ = d.GetInt32()
 		tag, _ := d.GetInt8()
-		partition.TAG_BUFFER = TAG_BUFFER(tag)
+		partition.TAG_BUFFER = types.TAG_BUFFER(tag)
 		partitions = append(partitions, partition)
 	}
 	return &partitions, nil

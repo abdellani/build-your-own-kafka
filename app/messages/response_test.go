@@ -4,36 +4,40 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/codecrafters-io/kafka-starter-go/app/messages"
+	"github.com/abdellani/build-your-own-kafka/app/api_versions"
+	"github.com/abdellani/build-your-own-kafka/app/dtp"
+	"github.com/abdellani/build-your-own-kafka/app/messages"
+	"github.com/abdellani/build-your-own-kafka/app/types"
+	"github.com/abdellani/build-your-own-kafka/app/utils"
 )
 
 func TestCalculateSize(t *testing.T) {
 	t.Run("DTPResponse", func(t *testing.T) {
-		payload := messages.DTPResponse{ //Total 43 bytes
+		payload := dtp.DTPResponse{ //Total 43 bytes
 			Size: 1, // 4
-			ResponseHeaderV1: messages.ResponseHeaderV1{ // Total 5 bytes
+			ResponseHeaderV1: types.ResponseHeaderV1{ // Total 5 bytes
 				CorrelationID: 1, //4
 				TAG_BUFFER:    0, //1
 			},
 			ThrottleTimeMs: 0, //4
-			Topics: messages.COMPACT_ARRAY[messages.Topic]{ //Total 28 bytes
+			Topics: types.COMPACT_ARRAY[dtp.Topic]{ //Total 28 bytes
 				//1 for length
 				{
-					ErrorCode:  0,               //2
-					Name:       []byte{0},       //1+1
-					TopicId:    messages.UUID{}, //16
-					IsInternal: 0,               //1
+					ErrorCode:  0,            //2
+					Name:       []byte{0},    //1+1
+					TopicId:    types.UUID{}, //16
+					IsInternal: 0,            //1
 					// 1 for partitions length
 					TopicsAuthorizedOperations: 0, //4
 					TAG_BUFFER:                 0, //1
 				},
 			},
-			NextCursor: messages.NULLABLE_FIELD[messages.NextCursor]{
+			NextCursor: types.NULLABLE_FIELD[dtp.NextCursor]{
 				IsNull: true, //1 because it'll be null
 			},
 			TAG_BUFFER: 0, // 1
 		}
-		got := messages.CalculateSize(payload)
+		got := utils.CalculateSize(payload)
 		var wanted int32 = 43
 		if got != wanted {
 			t.Errorf("expected %d, got %d", wanted, got)
@@ -51,7 +55,7 @@ func TestSerialize(t *testing.T) {
 			{Num: int16(1954), Want: []byte{0x07, 0xA2}},
 		}
 		for _, c := range cases {
-			got := messages.Serialize(c.Num)
+			got := types.Serialize(c.Num)
 			if !reflect.DeepEqual(got, c.Want) {
 				t.Errorf("got %v, want %v", got, c.Want)
 			}
@@ -68,7 +72,7 @@ func TestSerialize(t *testing.T) {
 			Error:         38,
 		}
 
-		got := messages.Serialize(object)
+		got := types.Serialize(object)
 		want := []byte{
 			6,               //Size
 			0, 0, 0x6, 0xFD, //CorrelationId
@@ -82,14 +86,14 @@ func TestSerialize(t *testing.T) {
 		object := struct {
 			Size           int32
 			NumApiKeys     int8
-			UUID           messages.UUID
+			UUID           types.UUID
 			CorrelationId  int32
 			Error          int16
 			ThrottleTimeMs int32
 		}{
 			Size:       27,
 			NumApiKeys: 0,
-			UUID: messages.UUID{
+			UUID: types.UUID{
 				0x19, 0x58, 0x23, 0xAB,
 				0xC5, 0xEF, 0xF4, 0xA2,
 				0x51, 0xAE, 0xDE, 0x5B,
@@ -99,7 +103,7 @@ func TestSerialize(t *testing.T) {
 			Error:          14589,
 			ThrottleTimeMs: 6542312,
 		}
-		got := messages.Serialize(object)
+		got := types.Serialize(object)
 		want := []byte{
 			0, 0, 0, 0x1B, //Size
 			0, //NumApiKeys
@@ -116,14 +120,14 @@ func TestSerialize(t *testing.T) {
 		}
 	})
 	t.Run("a struct compose of intergers and Slices", func(t *testing.T) {
-		object := messages.ApiVersionsResponse{
+		object := api_versions.ApiVersionsResponse{
 			Size: 26,
-			ResponseHeaderV0: messages.ResponseHeaderV0{
+			ResponseHeaderV0: types.ResponseHeaderV0{
 				CorrelationID: 78921354,
 			},
 			Error:      16845,
 			NumApiKeys: 3,
-			ApiKeys: []messages.ApiKeys{
+			ApiKeys: []api_versions.ApiKeys{
 				{ApiKey: messages.API_KEY_API_VERSIONS,
 					MinVersion: 0,
 					MaxVersion: 4,
@@ -139,7 +143,7 @@ func TestSerialize(t *testing.T) {
 			TAG_BUFFER:     0,
 		}
 
-		got := messages.Serialize(object)
+		got := types.Serialize(object)
 		want := []byte{
 			0, 0, 0, 0x1A, //Size
 			0x04, 0xB4, 0x3E, 0x8A, //CorrelationId

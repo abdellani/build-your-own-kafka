@@ -6,6 +6,6 @@
 //
 // DON'T EDIT THIS!
 
-module github.com/codecrafters-io/kafka-starter-go
+module github.com/abdellani/build-your-own-kafka
 
 go 1.22
